@@ -378,6 +378,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         Toast.makeText(LoginActivity.this, "Sign in error", Toast.LENGTH_LONG).show();
 
                     }
+                    else{
+
+                        mAuth = FirebaseAuth.getInstance();
+                        mAuthListener = new FirebaseAuth.AuthStateListener() {
+                            @Override
+                            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth){
+                                if(firebaseAuth.getCurrentUser()!=null){
+
+                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+
+                                }
+                            }
+                        };
+
+                    }
                 }
             });
         }
