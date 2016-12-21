@@ -21,6 +21,7 @@ public class SignUpActivity extends AppCompatActivity {
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView,inputEmail;
     private ProgressBar progressBar;
+
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     @Override
@@ -35,6 +36,7 @@ public class SignUpActivity extends AppCompatActivity {
                 startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
             }
         });
+        progressBar = (ProgressBar) findViewById(R.id.progress_Bar);
         inputEmail= (EditText) findViewById(R.id.email);
         mAuth = FirebaseAuth.getInstance();
         //mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
@@ -47,34 +49,77 @@ public class SignUpActivity extends AppCompatActivity {
                 register();
             }
         });
+
     }
+    private boolean isEmailValid(String email) {
+        //TODO: Replace this with your own logic
+        return email.contains("@");
+    }
+
+    private boolean isPasswordValid(String password) {
+        //TODO: Replace this with your own logic
+        return password.length() > 4;
+    }
+
     public void register(){
 
         String email= inputEmail.getText().toString().trim();
         System.out.println(email);
+        String password = mPasswordView.getText().toString();
         if (TextUtils.isEmpty(email)) {
-            Toast.makeText(getApplication(), "Enter your registered email id", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplication(), "Please enter a valid email id", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        boolean cancel = false;
+        View focusView = null;
+
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            Toast.makeText(getApplication(), "Please enter a valid password", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check for a valid email address
+        // .
+        if (TextUtils.isEmpty(password)){
+            Toast.makeText(getApplication(), "Please enter a valid password", Toast.LENGTH_SHORT).show();
+            return;
+
+        }
+        else if (!isEmailValid(email)) {
+            Toast.makeText(getApplication(), "Please enter a valid email id", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+       /* if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        }*/
+
         //String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
-        //progressBar.setVisibility(View.VISIBLE);
+
+        progressBar.setVisibility(View.VISIBLE);
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
 
-                        Toast.makeText(SignUpActivity.this, "createUserWithEmail:onComplete:"+task.isSuccessful(), Toast.LENGTH_SHORT).show();
+                       // Toast.makeText(SignUpActivity.this, "createUserWithEmail:onComplete:"+task.isSuccessful(), Toast.LENGTH_SHORT).show();
                         //progressBar.setVisibility(View.GONE);
                         // If sign in fails, display a message to the user. If sign in succeeds
                         // the auth state listener will be notified and logic to handle the
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
+                            progressBar.setVisibility(View.GONE);
                             Toast.makeText(SignUpActivity.this, "Registration failed.",
                                     Toast.LENGTH_LONG).show();
                         }
                         else{
-
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(SignUpActivity.this, "Registration Successful.",
+                                    Toast.LENGTH_LONG).show();
                             startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
                             finish();
                         }
