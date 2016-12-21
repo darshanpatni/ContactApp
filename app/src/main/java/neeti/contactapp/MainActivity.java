@@ -30,13 +30,16 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mAuth = FirebaseAuth.getInstance();
+
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth){
-                if(firebaseAuth.getCurrentUser()==null){
-
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user == null) {
+                    // user auth state is changed - user is null
+                    // launch login activity
                     startActivity(new Intent(MainActivity.this, LoginActivity.class));
-
+                    finish();
                 }
             }
         };
@@ -106,7 +109,8 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_logout) {
 
             mAuth.signOut();
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+
+            //startActivity(new Intent(MainActivity.this, LoginActivity.class));
 
         } else if (id == R.id.nav_share) {
 
@@ -117,5 +121,18 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 }
