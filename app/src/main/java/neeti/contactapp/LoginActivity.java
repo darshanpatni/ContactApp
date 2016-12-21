@@ -376,6 +376,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     if(!task.isSuccessful()){
 
                         Toast.makeText(LoginActivity.this, "Sign in error", Toast.LENGTH_LONG).show();
+                        startActivity(new Intent(LoginActivity.this, LoginActivity.class));
 
                     }
                     else{

@@ -67,13 +67,13 @@ public class SignUpActivity extends AppCompatActivity {
                         Toast.makeText(SignUpActivity.this, "createUserWithEmail:onComplete:"+task.isSuccessful(), Toast.LENGTH_SHORT).show();
                         //progressBar.setVisibility(View.GONE);
                         // If sign in fails, display a message to the user. If sign in succeeds
-                         // the auth state listener will be notified and logic to handle the
+                        // the auth state listener will be notified and logic to handle the
                         // signed in user can be handled in the listener.
                         if (!task.isSuccessful()) {
                             Toast.makeText(SignUpActivity.this, "Registration failed.",
                                     Toast.LENGTH_LONG).show();
                         }
-                       else{
+                        else{
 
                             startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
                             finish();
