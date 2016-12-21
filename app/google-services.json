@@ -1,0 +1,63 @@
+{
+  "project_info": {
+    "project_number": "256761018608",
+    "firebase_url": "https://contactapp-bb266.firebaseio.com",
+    "project_id": "contactapp-bb266",
+    "storage_bucket": "contactapp-bb266.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:256761018608:android:700f70c64a8dfa53",
+        "android_client_info": {
+          "package_name": "neeti.contactapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "256761018608-7qvem2lud9aa5sc841tf4qbb2ave5rdl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "neeti.contactapp",
+            "certificate_hash": "3C6576F6658A4CBBDB076D66D76DEA4D37819383"
+          }
+        },
+        {
+          "client_id": "256761018608-g08levpkp2jj9ir2n58v4nn0ddh9gt10.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "neeti.contactapp",
+            "certificate_hash": "7A02A7E99BA0B89F8D9C1B6D5761388459D9750A"
+          }
+        },
+        {
+          "client_id": "256761018608-afq1k0emg0okkbbj2npm27agusk5tcs3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7qC3ESxgn6aPfqDMbuExhFz50muwvgF8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "256761018608-afq1k0emg0okkbbj2npm27agusk5tcs3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
