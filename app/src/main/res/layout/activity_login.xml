@@ -23,7 +23,7 @@
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="331dp"
-        android:layout_height="291dp"
+        android:layout_height="400dp"
         android:layout_weight="0.19">
 
         <LinearLayout
@@ -76,6 +76,17 @@
                 android:layout_marginTop="16dp"
                 android:background="@color/colorPrimary"
                 android:text="Sign In"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/google_sign_in_button"
+                style="?android:textAppearanceSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@color/colorRed"
+                android:text="Google"
                 android:textColor="@android:color/white"
                 android:textStyle="bold" />
 
