@@ -1,6 +1,7 @@
 package neeti.contactapp;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -14,20 +15,59 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    FirebaseUser user;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        View HeadView =  navigationView.getHeaderView(0);
+        TextView uName = (TextView)HeadView.findViewById(R.id.userName);
+        ImageView dPhoto = (ImageView)HeadView.findViewById(R.id.imageView);
+        TextView mEmail = (TextView)HeadView.findViewById(R.id.uEmail);
+        user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user != null) {
+            // Name, email address, and profile photo Url
+            String name = user.getDisplayName();
+            String email = user.getEmail();
+            Uri photoUrl = user.getPhotoUrl();
+            System.out.println(name);
+            if(name!=null) {
+                uName.setText(name);
+                mEmail.setText(email);
+            }
+            if(photoUrl!=null){
+
+
+                Picasso.with(this)
+                        .load(photoUrl)
+                        .into(dPhoto);
+            }
+
+            // The user's ID, unique to the Firebase project. Do NOT use this value to
+            // authenticate with your backend server, if you have one. Use
+            // FirebaseUser.getToken() instead.
+
+        }
+
         setSupportActionBar(toolbar);
         mAuth = FirebaseAuth.getInstance();
 
@@ -43,6 +83,8 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,8 +100,10 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
         navigationView.setNavigationItemSelectedListener(this);
+
+
     }
 
     @Override
@@ -75,6 +119,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
