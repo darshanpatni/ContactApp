@@ -172,6 +172,7 @@ public class AddUserInfo extends AppCompatActivity {
                                 finish();
                             }
                         }
+
                     });
         }
 
