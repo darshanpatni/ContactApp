@@ -4,9 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -49,8 +47,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 import java.util.List;
 
-import static android.Manifest.permission.READ_CONTACTS;
-
 /**
  * A login screen that offers login via email/password.
  */
@@ -59,7 +55,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     /**
      * Id to identity READ_CONTACTS permission request.
      */
-    private static final int REQUEST_READ_CONTACTS = 0;
+   // private static final int REQUEST_READ_CONTACTS = 0;
 
 
     /**
@@ -94,6 +90,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+
         // Set up the login form.
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -101,14 +99,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth){
                 if(firebaseAuth.getCurrentUser()!=null){
 
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
 
                 }
             }
         };
 
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
+        //populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -183,6 +181,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     }
 
+    @Override
+    public void onBackPressed() {
+        startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+        finish();
+
+    }
+
+
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -205,6 +211,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 // Google Sign In failed, update UI appropriately
                 // ...
                 Toast.makeText(getApplication(), "Google Sign In failed!", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(LoginActivity.this, LoginActivity.class));
 
             }
         }
@@ -227,6 +234,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             Log.w(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(LoginActivity.this, LoginActivity.class));
                         }
                         showProgress(true);
                         // ...
@@ -259,7 +267,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
-    private void populateAutoComplete() {
+    /*private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
         }
@@ -287,12 +295,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
         return false;
-    }
+    }*/
 
     /**
      * Callback received when a permissions request has been completed.
      */
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode == REQUEST_READ_CONTACTS) {
@@ -300,7 +308,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 populateAutoComplete();
             }
         }
-    }
+    }*/
 
 
     /**
@@ -478,10 +486,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if(!task.isSuccessful()){
-
                         Toast.makeText(LoginActivity.this, "Sign in error", Toast.LENGTH_LONG).show();
                         startActivity(new Intent(LoginActivity.this, LoginActivity.class));
-
                     }
                     else{
 
@@ -491,7 +497,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth){
                                 if(firebaseAuth.getCurrentUser()!=null){
 
-                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
 
                                 }
                             }

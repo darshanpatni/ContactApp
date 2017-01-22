@@ -11,13 +11,13 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:icon="@drawable/icon"
+        android:label="ContactApp"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
             android:name=".LoginActivity"
-            android:label="@string/app_name">
+            android:label="Pin Contact">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,13 +25,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
-            android:label="@string/title_activity_main"
+            android:name=".HomeActivity"
+            android:label="Home"
             android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".SignUpActivity" />
-        <activity android:name=".ResetPasswordActivity" />
-        <activity android:name=".AddUserInfo"></activity>
+        <activity android:name=".SignUpActivity"
+            android:label="Register"/>
+        <activity android:name=".ResetPasswordActivity"
+            android:label="Reset Password"/>
+        <activity android:name=".AddUserInfo"
+            android:label="Complete your profile"></activity>
     </application>
 
 </manifest>

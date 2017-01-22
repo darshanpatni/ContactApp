@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -34,36 +35,40 @@ import com.squareup.picasso.Picasso;
 
 public class AddUserInfo extends AppCompatActivity {
 
+    //firebase variables
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private ProgressBar progressBar;
     private StorageReference mStorageRef;
+    FirebaseUser user;
+
+    //permission constants
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
     private static final int GALLERY_INTENT = 2;
+
+    //Variables to reference UI elements
     EditText dName;
-    Button SetUserInfo;
-    Button SelectImage;
+    Button setUserInfo;
+    Button selectImage;
     ImageView dPhoto;
-    FirebaseUser user;
-    Uri uri;
-    int FLAG;
+
+    Uri uri;//To store image Uri
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_user_info);
 
-        FLAG=1;
-        mStorageRef = FirebaseStorage.getInstance().getReference();
+
         dName = (EditText) findViewById(R.id.Name);
-        SetUserInfo = (Button) findViewById(R.id.save_button);
-        SelectImage = (Button) findViewById(R.id.imagePick_button);
+        setUserInfo = (Button) findViewById(R.id.save_button);
+        selectImage = (Button) findViewById(R.id.imagePick_button);
         dPhoto = (ImageView) findViewById(R.id.DisplayPhoto);
-        user = FirebaseAuth.getInstance().getCurrentUser();
 
+        user = FirebaseAuth.getInstance().getCurrentUser(); //gets current user
+        mStorageRef = FirebaseStorage.getInstance().getReference();//Storage Reference variable
 
-
-        SelectImage.setOnClickListener(new View.OnClickListener() {
+        selectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_PICK);
@@ -72,7 +77,7 @@ public class AddUserInfo extends AppCompatActivity {
             }
         });
 
-        SetUserInfo.setOnClickListener(new View.OnClickListener() {
+        setUserInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Save();
@@ -96,17 +101,18 @@ public class AddUserInfo extends AppCompatActivity {
             }
         };
 
+        //if SDK or android version marshmello get permission to access external storeage
         if (Build.VERSION.SDK_INT >= 23) {
             //do your check here
             mayRequestExternalStorage();
         }
 
         if (user != null) {
-            // Name, email address, and profile photo Url
+            // Name and profile photo Url
             String name = user.getDisplayName();
-            String email = user.getEmail();
+
             Uri photoUrl = user.getPhotoUrl();
-            String Uid = user.getUid();
+
 
             if(name!=null) {
                 dName.setText(name, TextView.BufferType.EDITABLE);
@@ -123,10 +129,9 @@ public class AddUserInfo extends AppCompatActivity {
 
         }
 
-
-
     }
 
+    //Help AuthStateListner track when user signs in and out
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
@@ -168,7 +173,6 @@ public class AddUserInfo extends AppCompatActivity {
                             }
                         }
                     });
-
         }
 
         else{
@@ -201,7 +205,7 @@ public class AddUserInfo extends AppCompatActivity {
                    // System.out.println(photoUri.toString());
                     Toast.makeText(AddUserInfo.this, "Upload Successful",
                             Toast.LENGTH_LONG).show();
-                    FLAG = 0;
+
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override

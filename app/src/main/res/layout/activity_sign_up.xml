@@ -73,6 +73,8 @@
                 android:singleLine="true"
                 android:textColor="@android:color/black" />
 
+
+
         </android.support.design.widget.TextInputLayout>
 
         <Button
@@ -94,7 +96,7 @@
             android:id="@+id/sign_in_button"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dip"
+            android:layout_marginTop="15dip"
             android:background="@null"
             android:text="Already Registered, Log in."
             android:textAllCaps="false"
