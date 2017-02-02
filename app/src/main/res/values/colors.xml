@@ -7,4 +7,7 @@
     <color name="cyan">#00FFFF</color>
     <color name="lightCyan">#E0FFFF</color>
     <color name="white">#FFFFFF</color>
+
+    <color name="ContactPhone">#999999</color>
+    <color name="ContactName">#222222</color>
 </resources>
