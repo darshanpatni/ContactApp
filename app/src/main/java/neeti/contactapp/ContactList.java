@@ -4,6 +4,7 @@ package neeti.contactapp;
  * Created by Darshan on 02-02-2017.
  */
 
+//Adapter Class for Recycler View
 public class ContactList {
 
     private String Name;

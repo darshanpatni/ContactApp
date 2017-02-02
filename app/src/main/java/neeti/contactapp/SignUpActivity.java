@@ -18,10 +18,12 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class SignUpActivity extends AppCompatActivity {
+    //Declare UI elements
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView,inputEmail;
     private ProgressBar progressBar;
 
+    //Declare Firebase elements
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     @Override
@@ -29,6 +31,7 @@ public class SignUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
+        //Initialize UI elements
         Button SignInButton = (Button) findViewById(R.id.sign_in_button);
         SignInButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -38,17 +41,16 @@ public class SignUpActivity extends AppCompatActivity {
         });
         progressBar = (ProgressBar) findViewById(R.id.progress_Bar);
         inputEmail= (EditText) findViewById(R.id.email);
-        mAuth = FirebaseAuth.getInstance();
-        //mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-
         mPasswordView = (EditText) findViewById(R.id.password);
         Button mEmailRegisterButton = (Button) findViewById(R.id.sign_up_button);
         mEmailRegisterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                register();
+                registerUser();
             }
         });
+
+        mAuth = FirebaseAuth.getInstance();
 
     }
     private boolean isEmailValid(String email) {
@@ -61,7 +63,7 @@ public class SignUpActivity extends AppCompatActivity {
         return password.length() > 4;
     }
 
-    public void register(){
+    public void registerUser(){
 
         String email= inputEmail.getText().toString().trim();
         System.out.println(email);
@@ -71,9 +73,7 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        boolean cancel = false;
-        View focusView = null;
-
+       
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
             Toast.makeText(getApplication(), "Please enter a valid password", Toast.LENGTH_SHORT).show();

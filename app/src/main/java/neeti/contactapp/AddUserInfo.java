@@ -59,7 +59,7 @@ public class AddUserInfo extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_user_info);
 
-
+        //initialize UI elements
         dName = (EditText) findViewById(R.id.Name);
         setUserInfo = (Button) findViewById(R.id.save_button);
         selectImage = (Button) findViewById(R.id.imagePick_button);
@@ -145,15 +145,14 @@ public class AddUserInfo extends AppCompatActivity {
         }
     }
 
+    //Save User Display Name and Display Photo
     public void Save(){
-
 
         String NewName = dName.getText().toString();
 
         if(NewName!=null) {
 
-
-                progressBar.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.VISIBLE);//Set progress bar visible
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(NewName)
                     .setPhotoUri(Uri.parse(uri.toString()))
@@ -219,9 +218,7 @@ public class AddUserInfo extends AppCompatActivity {
 
 
     }
-
-
-
+    //Request permission to access External Storage (Required for API 23 or greater)
     private boolean mayRequestExternalStorage() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;

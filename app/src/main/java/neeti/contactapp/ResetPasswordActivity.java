@@ -18,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class ResetPasswordActivity extends AppCompatActivity {
 
+    //Declare UI elements
     private EditText inputEmail;
     private Button btnReset, btnBack;
     private FirebaseAuth mAuth;
@@ -29,8 +30,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reset_password);
 
-
-
+        //Initialize UI elements
         Button BackButton = (Button) findViewById(R.id.btn_back);
         BackButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -43,7 +43,7 @@ public class ResetPasswordActivity extends AppCompatActivity {
         btnBack = (Button) findViewById(R.id.btn_back);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        mAuth = FirebaseAuth.getInstance();
+        mAuth = FirebaseAuth.getInstance();//Initialize FirebaseAuth
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override

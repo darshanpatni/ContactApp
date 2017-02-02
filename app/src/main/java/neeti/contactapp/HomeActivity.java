@@ -53,13 +53,12 @@ public class HomeActivity extends AppCompatActivity
     private RecyclerView mContactList;
 
     //Firebase Variables
-    private DatabaseReference mDatabase;
+
     private DatabaseReference rDatabase;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
     FirebaseUser user;
-
     FirebaseRecyclerAdapter<ContactList,ContactListViewHolder> firebaseRecyclerAdapter;
 
     //Request Contact Constant
@@ -87,25 +86,23 @@ public class HomeActivity extends AppCompatActivity
             mayRequestContacts();
         }
 
-
+        //initialize Recycler view
         mContactList = (RecyclerView) findViewById(R.id.contact_list);
         mContactList.setHasFixedSize(true);
         mContactList.setLayoutManager(new LinearLayoutManager(this));
 
-        mStorageRef = FirebaseStorage.getInstance().getReference();
+       //initialize UI elements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         View HeadView =  navigationView.getHeaderView(0);
         TextView uName = (TextView)HeadView.findViewById(R.id.userName);
         ImageView dPhoto = (ImageView)HeadView.findViewById(R.id.imageView);
         TextView mEmail = (TextView)HeadView.findViewById(R.id.uEmail);
+
+        //initialize Firebase variables
+        mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
-
-
         mAuth = FirebaseAuth.getInstance();
-
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -147,6 +144,7 @@ public class HomeActivity extends AppCompatActivity
 
         }
 
+        //initialize FirebaseRecyclerAdapter
         firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
 
                 ContactList.class,
@@ -163,28 +161,30 @@ public class HomeActivity extends AppCompatActivity
 
             }
         };
-        mContactList.setAdapter(firebaseRecyclerAdapter);
-        setSupportActionBar(toolbar);
 
+        mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
+        setSupportActionBar(toolbar);   //instantiate toolbar
 
+        //initialize floating action button
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
 
+        //initialize navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close); //set actions on navigation drawer
         drawer.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
 
-        navigationView.setNavigationItemSelectedListener(this);
+        navigationView.setNavigationItemSelectedListener(this); //listen if any item selected
 
 
 
@@ -248,75 +248,38 @@ public class HomeActivity extends AppCompatActivity
 
                     try {
 
-                        // Here you should write your time consuming task...
 
-                        // Let the progress ring for 10 seconds...
-                        user = FirebaseAuth.getInstance().getCurrentUser();
-                        Uid = user.getUid();
-                        UName = user.getDisplayName();
+                        //user = FirebaseAuth.getInstance().getCurrentUser(); //Get the currently logged in user information
+                        //Uid = user.getUid();    //Get User ID
+                        //UName = user.getDisplayName();
 
+                        //Initialize cursor to import contacts
                         ContentResolver cr = getContentResolver();
                         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                                 null, null, null, null);
+
                         if (cur.getCount() > 0) {
                             while (cur.moveToNext()) {
 
-                                //Import Contact ID
-
+                                //Get current Contact ID
                                 contactId=cur.getLong(cur.getColumnIndex(ContactsContract.Contacts._ID));
-                                //mDatabase.child("users").child(Uid).child(UName).child("contacts").child("ContactID").setValue(contactId);
 
-                                //Import Contact Name
+                                //Get current Contact Name
                                 String cName = cur.getString(cur.getColumnIndex(
                                         ContactsContract.Contacts.DISPLAY_NAME));
-                               // mDatabase.child("users").child(Uid).child(UName).child("contacts").child(contactId.toString()).child("Name").setValue(cName);
 
-
-                                //Import Contact photo
-
-
-
+                                //Get Current Contact URI
                                 Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
 
+                                //Get Current Contact Photo Uri
                                 Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
                                 try {
                                     AssetFileDescriptor fd =
                                             getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
-                                    // return fd.createInputStream();
+
                                 } catch (IOException e) {
                                     // return null;
                                 }
-
-                               /* StorageReference filepath = mStorageRef.child("users/"+Uid+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
-                                filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-
-
-                                    @Override
-                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-
-                                        // System.out.println(photoUri.toString());
-                                        downloadUrl = taskSnapshot.getDownloadUrl();
-                                        mDatabase.child("users").child(Uid).child(UName).child("contacts").child(contactId.toString()).child("PhotoUrl").setValue(downloadUrl);
-
-
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-
-                                    }
-                                });*/
-
-                              /* String downloadUrl = filepath.getDownloadUrl().toString();
-
-                                mDatabase.child("users").child(Uid).child(UName).child("contacts").child(contactId.toString()).child("PhotoUrl").setValue(downloadUrl);
-*/
-                                //Import Contact EmailID
-
-
-
-
-
 
                                 if(contactId!=null && cName!=null && displayPhotoUri!=null){
 
@@ -332,7 +295,7 @@ public class HomeActivity extends AppCompatActivity
                                     }
                                     else{
 
-
+                                        //Import Contact Photo
                                         StorageReference filepath = mStorageRef.child("users/"+Uid+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
                                         filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
 
@@ -340,7 +303,7 @@ public class HomeActivity extends AppCompatActivity
                                             @Override
                                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                                                // System.out.println(photoUri.toString());
+                                                // System.out.println(photoUri.toString()); //debug point
 
                                                 downloadUrl = taskSnapshot.getDownloadUrl();
                                                 rDatabase.child(contactId.toString()).child("PhotoUrl").setValue(downloadUrl.toString());
@@ -354,11 +317,11 @@ public class HomeActivity extends AppCompatActivity
                                             }
                                         });
 
+                                        //Import Contact Email ID if Any
                                         while (emailCursor.moveToNext())
                                         {
                                             String cEmail = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
                                             int type = emailCursor.getInt(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-                                            //  String cEmail = (String) ContactsContract.CommonDataKinds.Email.getTypeLabel(getResources(), , "");
                                             rDatabase.child(contactId.toString()).child("Email").setValue(cEmail);
                                         }
                                         emailCursor.close();
@@ -371,10 +334,9 @@ public class HomeActivity extends AppCompatActivity
                                         while (pCur.moveToNext()) {
                                         String phoneNo = pCur.getString(pCur.getColumnIndex(
                                                 ContactsContract.CommonDataKinds.Phone.NUMBER));
-                                        /*Toast.makeText(NativeContentProvider.this, "Name: " + name
-                                        + ", Phone No: " + phoneNo, Toast.LENGTH_SHORT).show();*/
+                                        //Import Contact Phone No.
                                         rDatabase.child(contactId.toString()).child("Phone").setValue(phoneNo);
-
+                                        //Import Contact Name
                                             rDatabase.child(contactId.toString()).child("Name").setValue(cName);
 
                                         }
@@ -383,13 +345,13 @@ public class HomeActivity extends AppCompatActivity
                                 }}
 
                             }
-                        }
+                        }   cur.close();
 
                         Thread.sleep(10000);
 
                     } catch (Exception e) {
 
-
+                        return;
 
                     }
 
@@ -404,9 +366,7 @@ public class HomeActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_logout) {
 
-            mAuth.signOut();
-
-            //startActivity(new Intent(HomeActivity.this, LoginActivity.class));
+            mAuth.signOut();    //Log out user method
 
         } else if (id == R.id.nav_send) {
 
@@ -417,6 +377,7 @@ public class HomeActivity extends AppCompatActivity
         return true;
     }
 
+    //Method to request contacts (Required for API 23 and greater)
     private boolean mayRequestContacts() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
@@ -440,9 +401,9 @@ public class HomeActivity extends AppCompatActivity
 
     public void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
+        mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
 
-        mContactList.setAdapter(firebaseRecyclerAdapter);
+        mContactList.setAdapter(firebaseRecyclerAdapter); //Set adapter for contact list recycler view
 
     }
 
@@ -451,11 +412,10 @@ public class HomeActivity extends AppCompatActivity
         super.onStop();
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
-
-
         }
     }
 
+    //ViewHolder for ContactList Recycler View
     public static class ContactListViewHolder extends RecyclerView.ViewHolder{
 
         View mView;
