@@ -306,7 +306,7 @@ public class HomeActivity extends AppCompatActivity
                                                 // System.out.println(photoUri.toString()); //debug point
 
                                                 downloadUrl = taskSnapshot.getDownloadUrl();
-                                                rDatabase.child(contactId.toString()).child("PhotoUrl").setValue(downloadUrl.toString());
+                                                rDatabase.child(contactId.toString()).child("photoUrl").setValue(downloadUrl.toString());
 
 
                                             }
@@ -322,7 +322,7 @@ public class HomeActivity extends AppCompatActivity
                                         {
                                             String cEmail = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
                                             int type = emailCursor.getInt(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-                                            rDatabase.child(contactId.toString()).child("Email").setValue(cEmail);
+                                            rDatabase.child(contactId.toString()).child("email").setValue(cEmail);
                                         }
                                         emailCursor.close();
 
@@ -335,9 +335,9 @@ public class HomeActivity extends AppCompatActivity
                                         String phoneNo = pCur.getString(pCur.getColumnIndex(
                                                 ContactsContract.CommonDataKinds.Phone.NUMBER));
                                         //Import Contact Phone No.
-                                        rDatabase.child(contactId.toString()).child("Phone").setValue(phoneNo);
+                                        rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
                                         //Import Contact Name
-                                            rDatabase.child(contactId.toString()).child("Name").setValue(cName);
+                                            rDatabase.child(contactId.toString()).child("name").setValue(cName);
 
                                         }
                                     pCur.close();
@@ -426,16 +426,16 @@ public class HomeActivity extends AppCompatActivity
             mView = itemView;
         }
 
-        public void setName(String Name){
+        public void setName(String name){
 
             TextView contact_Name = (TextView) mView.findViewById(R.id.ContactName);
-            contact_Name.setText(Name);
+            contact_Name.setText(name);
         }
 
-        public void setPhone(String Phone){
+        public void setPhone(String phone){
 
             TextView contact_phone = (TextView) mView.findViewById(R.id.ContactPhone);
-            contact_phone.setText(Phone);
+            contact_phone.setText(phone);
         }
     }
 
