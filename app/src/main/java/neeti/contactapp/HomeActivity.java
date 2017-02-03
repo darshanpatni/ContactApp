@@ -93,10 +93,10 @@ public class HomeActivity extends AppCompatActivity
 
        //initialize UI elements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        View HeadView =  navigationView.getHeaderView(0);
-        TextView uName = (TextView)HeadView.findViewById(R.id.userName);
-        ImageView dPhoto = (ImageView)HeadView.findViewById(R.id.imageView);
-        TextView mEmail = (TextView)HeadView.findViewById(R.id.uEmail);
+        View headView =  navigationView.getHeaderView(0);
+        TextView uName = (TextView)headView.findViewById(R.id.userName);
+        ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
+        TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
 
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();

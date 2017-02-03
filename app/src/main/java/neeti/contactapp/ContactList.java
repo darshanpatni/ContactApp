@@ -7,30 +7,30 @@ package neeti.contactapp;
 //Adapter Class for Recycler View
 public class ContactList {
 
-    private String Name;
-    private String Phone;
+    private String name;
+    private String phone;
 
     public ContactList(){}
 
     public ContactList(String name, String phone) {
-        Name = name;
-        Phone = phone;
+        this.name = name;
+        this.phone = phone;
     }
 
     public String getPhone() {
-        return Phone;
+        return phone;
     }
 
     public void setPhone(String phone) {
-        Phone = phone;
+        this.phone = phone;
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 
 
