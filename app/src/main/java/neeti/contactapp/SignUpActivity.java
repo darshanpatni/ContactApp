@@ -73,7 +73,7 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-       
+
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
             Toast.makeText(getApplication(), "Please enter a valid password", Toast.LENGTH_SHORT).show();
