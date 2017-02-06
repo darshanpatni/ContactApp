@@ -38,6 +38,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -102,6 +103,7 @@ public class HomeActivity extends AppCompatActivity
         user = FirebaseAuth.getInstance().getCurrentUser();
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
         rDatabase.keepSynced(true);
+        Query query = rDatabase.orderByChild("name");
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -144,12 +146,13 @@ public class HomeActivity extends AppCompatActivity
 
         ringProgressDialog.show();
         //initialize FirebaseRecyclerAdapter
+
         firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
 
                 ContactList.class,
                 R.layout.contact_list_row,
                 ContactListViewHolder.class,
-                rDatabase
+                query
 
         ) {
 
