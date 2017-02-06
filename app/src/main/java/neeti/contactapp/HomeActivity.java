@@ -64,10 +64,6 @@ public class HomeActivity extends AppCompatActivity
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    //Menu button variable
-    private ActionBarDrawerToggle mDrawerToggle;
-    private String UName;
-    private String Uid;
     private Long contactId;
     private Uri downloadUrl = null;
 
@@ -78,6 +74,7 @@ public class HomeActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
 
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -86,10 +83,6 @@ public class HomeActivity extends AppCompatActivity
             mayRequestContacts();
         }
 
-        //initialize Recycler view
-        mContactList = (RecyclerView) findViewById(R.id.contact_list);
-        mContactList.setHasFixedSize(true);
-        mContactList.setLayoutManager(new LinearLayoutManager(this));
 
        //initialize UI elements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -98,10 +91,17 @@ public class HomeActivity extends AppCompatActivity
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
 
+        //initialize Recycler view
+        mContactList = (RecyclerView) findViewById(R.id.contact_list);
+        //mContactList.setHasFixedSize(true);
+        mContactList.setLayoutManager(new LinearLayoutManager(this));
+
+
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
+        rDatabase.keepSynced(true);
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -112,10 +112,6 @@ public class HomeActivity extends AppCompatActivity
                     // launch login activity
                     startActivity(new Intent(HomeActivity.this, LoginActivity.class));
                     finish();
-                }
-                else{
-
-
                 }
             }
         };
@@ -144,6 +140,9 @@ public class HomeActivity extends AppCompatActivity
 
         }
 
+        final ProgressDialog ringProgressDialog = ProgressDialog.show(HomeActivity.this, "Please Wait", "Loading Contacts", true);
+
+        ringProgressDialog.show();
         //initialize FirebaseRecyclerAdapter
         firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
 
@@ -153,15 +152,18 @@ public class HomeActivity extends AppCompatActivity
                 rDatabase
 
         ) {
+
             @Override
             protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
 
-                viewHolder.setName(model.getName());
-                viewHolder.setPhone(model.getPhone());
+                viewHolder.contact_Name.setText(model.getName());
+                viewHolder.contact_Phone.setText(model.getPhone());
 
             }
-        };
 
+        };
+        ringProgressDialog.dismiss();
+        firebaseRecyclerAdapter.notifyDataSetChanged();
         mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
         setSupportActionBar(toolbar);   //instantiate toolbar
@@ -178,8 +180,8 @@ public class HomeActivity extends AppCompatActivity
 
         //initialize navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close); //set actions on navigation drawer
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
@@ -229,7 +231,7 @@ public class HomeActivity extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -258,6 +260,7 @@ public class HomeActivity extends AppCompatActivity
                         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                                 null, null, null, null);
 
+                        assert cur != null;
                         if (cur.getCount() > 0) {
                             while (cur.moveToNext()) {
 
@@ -272,8 +275,12 @@ public class HomeActivity extends AppCompatActivity
                                 Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
 
                                 //Get Current Contact Photo Uri
-                                Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
-                                try {
+                                Uri displayPhotoUri=null;
+                                if(Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO)!=null){
+                                    displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
+
+                                }
+                               try {
                                     AssetFileDescriptor fd =
                                             getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
 
@@ -296,7 +303,8 @@ public class HomeActivity extends AppCompatActivity
                                     else{
 
                                         //Import Contact Photo
-                                        StorageReference filepath = mStorageRef.child("users/"+Uid+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
+
+                                        StorageReference filepath = mStorageRef.child("users/"+user.getUid()+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
                                         filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
 
 
@@ -318,6 +326,7 @@ public class HomeActivity extends AppCompatActivity
                                         });
 
                                         //Import Contact Email ID if Any
+                                        assert emailCursor != null;
                                         while (emailCursor.moveToNext())
                                         {
                                             String cEmail = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
@@ -402,8 +411,8 @@ public class HomeActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
-
-        mContactList.setAdapter(firebaseRecyclerAdapter); //Set adapter for contact list recycler view
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
     }
 
@@ -419,24 +428,16 @@ public class HomeActivity extends AppCompatActivity
     public static class ContactListViewHolder extends RecyclerView.ViewHolder{
 
         View mView;
+        TextView contact_Name;
+        TextView contact_Phone;
 
         public ContactListViewHolder(View itemView) {
             super(itemView);
-
+            contact_Name = (TextView) itemView.findViewById(R.id.ContactName);
+            contact_Phone = (TextView) itemView.findViewById(R.id.ContactPhone);
             mView = itemView;
         }
 
-        public void setName(String name){
-
-            TextView contact_Name = (TextView) mView.findViewById(R.id.ContactName);
-            contact_Name.setText(name);
-        }
-
-        public void setPhone(String phone){
-
-            TextView contact_phone = (TextView) mView.findViewById(R.id.ContactPhone);
-            contact_phone.setText(phone);
-        }
     }
 
 }

@@ -14,7 +14,8 @@
         android:icon="@drawable/icon"
         android:label="ContactApp"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:name=".ContactApp">
         <activity
             android:name=".LoginActivity"
             android:label="Pin Contact">
