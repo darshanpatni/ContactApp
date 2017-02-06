@@ -108,14 +108,7 @@ public class HomeActivity extends AppCompatActivity
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
 
-        /**
-         * Lets inflate the very first fragment
-         * Here , we are inflating the TabFragment as the first Fragment
-         */
 
-        mFragmentManager = getSupportFragmentManager();
-        mFragmentTransaction = mFragmentManager.beginTransaction();
-        mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
         //initialize Recycler view
         mContactList = (RecyclerView) findViewById(R.id.contact_list);
