@@ -12,10 +12,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -32,6 +36,12 @@ import android.widget.Toast;
 import android.provider.ContactsContract;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,9 +62,10 @@ public class HomeActivity extends AppCompatActivity
 
     //Recycler Contact list variables
     private RecyclerView mContactList;
-
+    FragmentManager mFragmentManager;
+    FragmentTransaction mFragmentTransaction;
     //Firebase Variables
-
+    private GoogleApiClient mGoogleApiClient;
     private DatabaseReference rDatabase;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
@@ -67,12 +78,17 @@ public class HomeActivity extends AppCompatActivity
 
     private Long contactId;
     private Uri downloadUrl = null;
-
+    GoogleSignInOptions gso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
 
 
 
@@ -91,6 +107,15 @@ public class HomeActivity extends AppCompatActivity
         TextView uName = (TextView)headView.findViewById(R.id.userName);
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
+
+        /**
+         * Lets inflate the very first fragment
+         * Here , we are inflating the TabFragment as the first Fragment
+         */
+
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentTransaction = mFragmentManager.beginTransaction();
+        mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
         //initialize Recycler view
         mContactList = (RecyclerView) findViewById(R.id.contact_list);
@@ -378,7 +403,51 @@ public class HomeActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_logout) {
 
+
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener(){
+
+                        public void onConnectionFailed(@NonNull ConnectionResult connectionResult){
+
+                        }
+
+                    })
+                    .addApi(Auth.GOOGLE_SIGN_IN_API,gso)
+                    .build();
+            mGoogleApiClient.connect();
+            mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                @Override
+                public void onConnected(@Nullable Bundle bundle) {
+
+                    FirebaseAuth.getInstance().signOut();
+                    if(mGoogleApiClient.isConnected()) {
+                        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(@NonNull Status status) {
+                                if (status.isSuccess()) {
+                                    Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onConnectionSuspended(int i) {
+
+                }
+            });
+
+            /*Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+                @Override
+                public void onResult(@NonNull Status status) {
+                    mAuth.signOut();
+                }
+            });*/
             mAuth.signOut();    //Log out user method
+
 
         } else if (id == R.id.nav_send) {
 
