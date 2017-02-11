@@ -71,7 +71,7 @@ public class HomeActivity extends AppCompatActivity
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
     FirebaseUser user;
-    FirebaseRecyclerAdapter<ContactList,ContactListViewHolder> firebaseRecyclerAdapter;
+  //  FirebaseRecyclerAdapter<ContactList,ContactListViewHolder> firebaseRecyclerAdapter;
 
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
@@ -108,12 +108,15 @@ public class HomeActivity extends AppCompatActivity
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
 
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentTransaction = mFragmentManager.beginTransaction();
+        mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
 
         //initialize Recycler view
-        mContactList = (RecyclerView) findViewById(R.id.contact_list);
+      //  mContactList = (RecyclerView) findViewById(R.id.contact_list);
         //mContactList.setHasFixedSize(true);
-        mContactList.setLayoutManager(new LinearLayoutManager(this));
+      //  mContactList.setLayoutManager(new LinearLayoutManager(this));
 
 
         //initialize Firebase variables
@@ -160,7 +163,7 @@ public class HomeActivity extends AppCompatActivity
 
         }
 
-        final ProgressDialog ringProgressDialog = ProgressDialog.show(HomeActivity.this, "Please Wait", "Loading Contacts", true);
+     /*   final ProgressDialog ringProgressDialog = ProgressDialog.show(HomeActivity.this, "Please Wait", "Loading Contacts", true);
 
         ringProgressDialog.show();
         //initialize FirebaseRecyclerAdapter
@@ -185,7 +188,7 @@ public class HomeActivity extends AppCompatActivity
         };
         ringProgressDialog.dismiss();
         firebaseRecyclerAdapter.notifyDataSetChanged();
-        mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
+        mContactList.setAdapter(firebaseRecyclerAdapter);     */   //set adapter for recycler view
 
         setSupportActionBar(toolbar);   //instantiate toolbar
 
@@ -476,8 +479,8 @@ public class HomeActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
-        firebaseRecyclerAdapter.notifyDataSetChanged();
-        mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
+        //firebaseRecyclerAdapter.notifyDataSetChanged();
+       // mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
     }
 
@@ -489,7 +492,7 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-    //ViewHolder for ContactList Recycler View
+   /* //ViewHolder for ContactList Recycler View
     public static class ContactListViewHolder extends RecyclerView.ViewHolder{
 
         View mView;
@@ -504,5 +507,5 @@ public class HomeActivity extends AppCompatActivity
         }
 
     }
-
+*/
 }
