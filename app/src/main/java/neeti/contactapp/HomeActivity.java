@@ -18,6 +18,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -60,8 +61,7 @@ import static android.Manifest.permission.READ_CONTACTS;
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    //Recycler Contact list variables
-    private RecyclerView mContactList;
+
     FragmentManager mFragmentManager;
     FragmentTransaction mFragmentTransaction;
     //Firebase Variables
@@ -71,7 +71,6 @@ public class HomeActivity extends AppCompatActivity
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
     FirebaseUser user;
-  //  FirebaseRecyclerAdapter<ContactList,ContactListViewHolder> firebaseRecyclerAdapter;
 
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
@@ -112,11 +111,6 @@ public class HomeActivity extends AppCompatActivity
         mFragmentTransaction = mFragmentManager.beginTransaction();
         mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
-
-        //initialize Recycler view
-      //  mContactList = (RecyclerView) findViewById(R.id.contact_list);
-        //mContactList.setHasFixedSize(true);
-      //  mContactList.setLayoutManager(new LinearLayoutManager(this));
 
 
         //initialize Firebase variables
@@ -163,43 +157,40 @@ public class HomeActivity extends AppCompatActivity
 
         }
 
-     /*   final ProgressDialog ringProgressDialog = ProgressDialog.show(HomeActivity.this, "Please Wait", "Loading Contacts", true);
-
-        ringProgressDialog.show();
-        //initialize FirebaseRecyclerAdapter
-
-        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
-
-                ContactList.class,
-                R.layout.contact_list_row,
-                ContactListViewHolder.class,
-                query
-
-        ) {
-
-            @Override
-            protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
-
-                viewHolder.contact_Name.setText(model.getName());
-                viewHolder.contact_Phone.setText(model.getPhone());
-
-            }
-
-        };
-        ringProgressDialog.dismiss();
-        firebaseRecyclerAdapter.notifyDataSetChanged();
-        mContactList.setAdapter(firebaseRecyclerAdapter);     */   //set adapter for recycler view
 
         setSupportActionBar(toolbar);   //instantiate toolbar
 
         //initialize floating action button
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Creating the instance of PopupMenu
+                PopupMenu popup = new PopupMenu(HomeActivity.this, fab);
+                //Inflating the Popup using xml file
+                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+
+                        System.out.println(item.getTitle().toString());
+                        if(item.getItemId()==R.id.contact){
+                            startActivity(new Intent(HomeActivity.this, AddContactActivity.class));
+                            finish();
+                            return true;
+
+                        }
+                        Toast.makeText(HomeActivity.this,"You Clicked : " + item.getTitle(),Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
+
+                popup.show();//showing popup menu
             }
+                /*Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
         });
 
         //initialize navigation drawer
@@ -479,9 +470,6 @@ public class HomeActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
-        //firebaseRecyclerAdapter.notifyDataSetChanged();
-       // mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
-
     }
 
     @Override
@@ -492,20 +480,5 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-   /* //ViewHolder for ContactList Recycler View
-    public static class ContactListViewHolder extends RecyclerView.ViewHolder{
 
-        View mView;
-        TextView contact_Name;
-        TextView contact_Phone;
-
-        public ContactListViewHolder(View itemView) {
-            super(itemView);
-            contact_Name = (TextView) itemView.findViewById(R.id.ContactName);
-            contact_Phone = (TextView) itemView.findViewById(R.id.ContactPhone);
-            mView = itemView;
-        }
-
-    }
-*/
 }

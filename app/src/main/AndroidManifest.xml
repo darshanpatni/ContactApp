@@ -8,14 +8,13 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-
     <application
+        android:name=".ContactApp"
         android:allowBackup="true"
         android:icon="@drawable/icon"
         android:label="ContactApp"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:name=".ContactApp">
+        android:theme="@style/AppTheme">
         <activity
             android:name=".LoginActivity"
             android:label="Pin Contact">
@@ -29,13 +28,18 @@
             android:name=".HomeActivity"
             android:label="Home"
             android:theme="@style/AppTheme.NoActionBar" />
-
-        <activity android:name=".SignUpActivity"
-            android:label="Register"/>
-        <activity android:name=".ResetPasswordActivity"
-            android:label="Reset Password"/>
-        <activity android:name=".AddUserInfo"
-            android:label="Complete your profile"></activity>
+        <activity
+            android:name=".SignUpActivity"
+            android:label="Register" />
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:label="Reset Password" />
+        <activity
+            android:name=".AddUserInfo"
+            android:label="Complete your profile" />
+        <activity
+            android:name=".AddContactActivity"
+            android:label="Add Contact"/>
     </application>
 
 </manifest>
