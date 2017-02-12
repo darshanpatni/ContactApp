@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -20,7 +19,6 @@ public class ResetPasswordActivity extends AppCompatActivity {
 
     //Declare UI elements
     private EditText inputEmail;
-    private Button btnReset, btnBack;
     private FirebaseAuth mAuth;
     private ProgressBar progressBar;
 
@@ -39,8 +37,8 @@ public class ResetPasswordActivity extends AppCompatActivity {
             }
         });
         inputEmail = (EditText) findViewById(R.id.email);
-        btnReset = (Button) findViewById(R.id.btn_reset_password);
-        btnBack = (Button) findViewById(R.id.btn_back);
+        Button btnReset = (Button) findViewById(R.id.btn_reset_password);
+        Button btnBack = (Button) findViewById(R.id.btn_back);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         mAuth = FirebaseAuth.getInstance();//Initialize FirebaseAuth

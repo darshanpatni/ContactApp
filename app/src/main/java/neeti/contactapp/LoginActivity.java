@@ -69,8 +69,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private GoogleApiClient mGoogleApiClient;
-    private TextView mStatusTextView;
-    private TextView mDetailTextView;
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "LoginActivity";
 
@@ -415,7 +413,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         };
 
         int ADDRESS = 0;
-        int IS_PRIMARY = 1;
     }
 
     /**

@@ -12,10 +12,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -32,12 +37,19 @@ import android.widget.Toast;
 import android.provider.ContactsContract;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -49,33 +61,34 @@ import static android.Manifest.permission.READ_CONTACTS;
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    //Recycler Contact list variables
-    private RecyclerView mContactList;
 
+    FragmentManager mFragmentManager;
+    FragmentTransaction mFragmentTransaction;
     //Firebase Variables
-
+    private GoogleApiClient mGoogleApiClient;
     private DatabaseReference rDatabase;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
     FirebaseUser user;
-    FirebaseRecyclerAdapter<ContactList,ContactListViewHolder> firebaseRecyclerAdapter;
 
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    //Menu button variable
-    private ActionBarDrawerToggle mDrawerToggle;
-    private String UName;
-    private String Uid;
     private Long contactId;
     private Uri downloadUrl = null;
-
+    GoogleSignInOptions gso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -86,10 +99,6 @@ public class HomeActivity extends AppCompatActivity
             mayRequestContacts();
         }
 
-        //initialize Recycler view
-        mContactList = (RecyclerView) findViewById(R.id.contact_list);
-        mContactList.setHasFixedSize(true);
-        mContactList.setLayoutManager(new LinearLayoutManager(this));
 
        //initialize UI elements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -98,10 +107,18 @@ public class HomeActivity extends AppCompatActivity
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
 
+        mFragmentManager = getSupportFragmentManager();
+        mFragmentTransaction = mFragmentManager.beginTransaction();
+        mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
+
+
+
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
+        rDatabase.keepSynced(true);
+        Query query = rDatabase.orderByChild("name");
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -112,10 +129,6 @@ public class HomeActivity extends AppCompatActivity
                     // launch login activity
                     startActivity(new Intent(HomeActivity.this, LoginActivity.class));
                     finish();
-                }
-                else{
-
-
                 }
             }
         };
@@ -144,42 +157,46 @@ public class HomeActivity extends AppCompatActivity
 
         }
 
-        //initialize FirebaseRecyclerAdapter
-        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
-
-                ContactList.class,
-                R.layout.contact_list_row,
-                ContactListViewHolder.class,
-                rDatabase
-
-        ) {
-            @Override
-            protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
-
-                viewHolder.setName(model.getName());
-                viewHolder.setPhone(model.getPhone());
-
-            }
-        };
-
-        mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
         setSupportActionBar(toolbar);   //instantiate toolbar
 
         //initialize floating action button
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //Creating the instance of PopupMenu
+                PopupMenu popup = new PopupMenu(HomeActivity.this, fab);
+                //Inflating the Popup using xml file
+                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+
+                        System.out.println(item.getTitle().toString());
+                        if(item.getItemId()==R.id.contact){
+                            startActivity(new Intent(HomeActivity.this, AddContactActivity.class));
+                            finish();
+                            return true;
+
+                        }
+                        Toast.makeText(HomeActivity.this,"You Clicked : " + item.getTitle(),Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
+
+                popup.show();//showing popup menu
             }
+                /*Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
         });
 
         //initialize navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerToggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close); //set actions on navigation drawer
+        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
@@ -229,7 +246,7 @@ public class HomeActivity extends AppCompatActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -258,6 +275,7 @@ public class HomeActivity extends AppCompatActivity
                         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
                                 null, null, null, null);
 
+                        assert cur != null;
                         if (cur.getCount() > 0) {
                             while (cur.moveToNext()) {
 
@@ -272,8 +290,12 @@ public class HomeActivity extends AppCompatActivity
                                 Uri contactUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
 
                                 //Get Current Contact Photo Uri
-                                Uri displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
-                                try {
+                                Uri displayPhotoUri=null;
+                                if(Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO)!=null){
+                                    displayPhotoUri = Uri.withAppendedPath(contactUri, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
+
+                                }
+                               try {
                                     AssetFileDescriptor fd =
                                             getContentResolver().openAssetFileDescriptor(displayPhotoUri, "r");
 
@@ -296,7 +318,8 @@ public class HomeActivity extends AppCompatActivity
                                     else{
 
                                         //Import Contact Photo
-                                        StorageReference filepath = mStorageRef.child("users/"+Uid+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
+
+                                        StorageReference filepath = mStorageRef.child("users/"+user.getUid()+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
                                         filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
 
 
@@ -318,6 +341,7 @@ public class HomeActivity extends AppCompatActivity
                                         });
 
                                         //Import Contact Email ID if Any
+                                        assert emailCursor != null;
                                         while (emailCursor.moveToNext())
                                         {
                                             String cEmail = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
@@ -366,7 +390,51 @@ public class HomeActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_logout) {
 
+
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener(){
+
+                        public void onConnectionFailed(@NonNull ConnectionResult connectionResult){
+
+                        }
+
+                    })
+                    .addApi(Auth.GOOGLE_SIGN_IN_API,gso)
+                    .build();
+            mGoogleApiClient.connect();
+            mGoogleApiClient.registerConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                @Override
+                public void onConnected(@Nullable Bundle bundle) {
+
+                    FirebaseAuth.getInstance().signOut();
+                    if(mGoogleApiClient.isConnected()) {
+                        Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(@NonNull Status status) {
+                                if (status.isSuccess()) {
+                                    Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onConnectionSuspended(int i) {
+
+                }
+            });
+
+            /*Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
+                @Override
+                public void onResult(@NonNull Status status) {
+                    mAuth.signOut();
+                }
+            });*/
             mAuth.signOut();    //Log out user method
+
 
         } else if (id == R.id.nav_send) {
 
@@ -402,9 +470,6 @@ public class HomeActivity extends AppCompatActivity
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
-
-        mContactList.setAdapter(firebaseRecyclerAdapter); //Set adapter for contact list recycler view
-
     }
 
     @Override
@@ -415,28 +480,5 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
-    //ViewHolder for ContactList Recycler View
-    public static class ContactListViewHolder extends RecyclerView.ViewHolder{
-
-        View mView;
-
-        public ContactListViewHolder(View itemView) {
-            super(itemView);
-
-            mView = itemView;
-        }
-
-        public void setName(String name){
-
-            TextView contact_Name = (TextView) mView.findViewById(R.id.ContactName);
-            contact_Name.setText(name);
-        }
-
-        public void setPhone(String phone){
-
-            TextView contact_phone = (TextView) mView.findViewById(R.id.ContactPhone);
-            contact_phone.setText(phone);
-        }
-    }
 
 }
