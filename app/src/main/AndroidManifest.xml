@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="neeti.contactapp">
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
@@ -9,6 +11,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        tools:replace="android:label"
         android:name=".ContactApp"
         android:allowBackup="true"
         android:icon="@drawable/icon"
@@ -39,7 +42,10 @@
             android:label="Complete your profile" />
         <activity
             android:name=".AddContactActivity"
-            android:label="Add Contact"/>
+            android:label="Add Contact" />
+        <activity
+            android:name=".AddAgendaActivity"
+            android:label="Add Agenda" />
     </application>
 
 </manifest>

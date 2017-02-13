@@ -179,7 +179,11 @@ public class HomeActivity extends AppCompatActivity
                             startActivity(new Intent(HomeActivity.this, AddContactActivity.class));
                             finish();
                             return true;
-
+                        }
+                        if(item.getItemId()==R.id.agenda){
+                            startActivity(new Intent(HomeActivity.this, AddAgendaActivity.class));
+                            finish();
+                            return true;
                         }
                         Toast.makeText(HomeActivity.this,"You Clicked : " + item.getTitle(),Toast.LENGTH_SHORT).show();
                         return true;
@@ -361,6 +365,7 @@ public class HomeActivity extends AppCompatActivity
                                         //Import Contact Phone No.
                                         rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
                                         //Import Contact Name
+
                                             rDatabase.child(contactId.toString()).child("name").setValue(cName);
 
                                         }
