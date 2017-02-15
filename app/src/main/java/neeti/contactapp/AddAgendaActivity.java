@@ -45,7 +45,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     private DatabaseReference rDatabase;
     FirebaseUser user;
     List<String> names;
-
+    boolean doubleBackToExitPressedOnce = false;
     Calendar myCalendar;
     DatePickerDialog.OnDateSetListener date;
 
@@ -126,9 +126,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
             }
         });
 
-        try {
+     /*   try {
             Intent intent =
-                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
+                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
                             .build(this);
             startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
         } catch (GooglePlayServicesRepairableException e) {
@@ -136,7 +136,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         } catch (GooglePlayServicesNotAvailableException e) {
             // TODO: Handle the error.
         }
-
+*/
 
     }
 
@@ -197,4 +197,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
 
         datePick.setText(sdf.format(myCalendar.getTime()));
     }
+
+
 }

@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -72,6 +73,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "LoginActivity";
 
+    boolean doubleBackToExitPressedOnce = false;
+
     public LoginActivity() {
     }
 
@@ -89,6 +92,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if(firebaseAuth.getCurrentUser()!=null){
 
                     startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                    finish();
 
                 }
             }
@@ -114,6 +118,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, SignUpActivity.class));
+                finish();
             }
         });
 
@@ -122,6 +127,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
+                finish();
             }
         });
 
@@ -172,8 +178,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     @Override
     public void onBackPressed() {
-        startActivity(new Intent(LoginActivity.this, LoginActivity.class));
-        finish();
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
 
     }
 
@@ -201,6 +220,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 // ...
                 Toast.makeText(getApplication(), "Google Sign In failed!", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                finish();
 
             }
         }
@@ -224,6 +244,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                            finish();
                         }
                         showProgress(true);
                         // ...
@@ -433,6 +454,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     if(!task.isSuccessful()){
                         Toast.makeText(LoginActivity.this, "Sign in error", Toast.LENGTH_LONG).show();
                         startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                        finish();
                     }
                     else{
 
@@ -443,6 +465,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                 if(firebaseAuth.getCurrentUser()!=null){
 
                                     startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                    finish();
 
                                 }
                             }
@@ -495,5 +518,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
         }
     }
+
 }
 

@@ -23,6 +23,7 @@ public class SignUpActivity extends AppCompatActivity {
 
     //Declare Firebase elements
     private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
