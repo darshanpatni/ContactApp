@@ -119,9 +119,7 @@ public class HomeActivity extends AppCompatActivity
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
-        rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
-        rDatabase.keepSynced(true);
-        Query query = rDatabase.orderByChild("name");
+
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -136,8 +134,12 @@ public class HomeActivity extends AppCompatActivity
             }
         };
 
+
         if (user != null) {
             // Name, email address, and profile photo Url
+            rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
+            rDatabase.keepSynced(true);
+            Query query = rDatabase.orderByChild("name");
             String name = user.getDisplayName();
             String email = user.getEmail();
             Uri photoUrl = user.getPhotoUrl();
@@ -435,7 +437,7 @@ public class HomeActivity extends AppCompatActivity
                             @Override
                             public void onResult(@NonNull Status status) {
                                 if (status.isSuccess()) {
-                                    Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                                    Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
                                     startActivity(intent);
                                     finish();
                                 }

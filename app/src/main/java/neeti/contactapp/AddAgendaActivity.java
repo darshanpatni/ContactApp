@@ -198,5 +198,11 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         datePick.setText(sdf.format(myCalendar.getTime()));
     }
 
+    @Override
+    public void onBackPressed() {
+
+        startActivity(new Intent(AddAgendaActivity.this, HomeActivity.class));
+        finish();
+    }
 
 }

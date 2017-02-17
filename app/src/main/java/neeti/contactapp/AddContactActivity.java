@@ -1,5 +1,6 @@
 package neeti.contactapp;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,4 +15,10 @@ public class AddContactActivity extends AppCompatActivity {
         TextView textView = (TextView) findViewById(R.id.contact_name);
     }
 
+    @Override
+    public void onBackPressed() {
+
+        startActivity(new Intent(AddContactActivity.this, HomeActivity.class));
+        finish();
+    }
 }

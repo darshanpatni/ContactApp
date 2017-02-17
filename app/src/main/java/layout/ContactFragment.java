@@ -112,41 +112,45 @@ public class ContactFragment extends Fragment {
         //mContactList.setHasFixedSize(true);
         mContactList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-
+        Query query = null;
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
-        rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
-        rDatabase.keepSynced(true);
-        Query query = rDatabase.orderByChild("name");
+        if (user != null) {
+            rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
+            rDatabase.keepSynced(true);
+            query = rDatabase.orderByChild("name");
+
+            final ProgressDialog ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
+
+            ringProgressDialog.show();
+            //initialize FirebaseRecyclerAdapter
+
+            firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
+
+                    ContactList.class,
+                    R.layout.contact_list_row,
+                    ContactListViewHolder.class,
+                    query
+
+            ) {
+
+                @Override
+                protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
+
+                    viewHolder.contact_Name.setText(model.getName());
+                    viewHolder.contact_Phone.setText(model.getPhone());
+
+                }
+
+            };
+            ringProgressDialog.dismiss();
+            firebaseRecyclerAdapter.notifyDataSetChanged();
+            mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
+
+        }
         mAuth = FirebaseAuth.getInstance();
 
-        final ProgressDialog ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
-
-        ringProgressDialog.show();
-        //initialize FirebaseRecyclerAdapter
-
-        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
-
-                ContactList.class,
-                R.layout.contact_list_row,
-                ContactListViewHolder.class,
-                query
-
-        ) {
-
-            @Override
-            protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
-
-                viewHolder.contact_Name.setText(model.getName());
-                viewHolder.contact_Phone.setText(model.getPhone());
-
-            }
-
-        };
-        ringProgressDialog.dismiss();
-        firebaseRecyclerAdapter.notifyDataSetChanged();
-        mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
         return  rootView;
     }
