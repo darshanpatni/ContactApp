@@ -57,6 +57,8 @@ import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
 
+import layout.AgendaFragment;
+
 import static android.Manifest.permission.READ_CONTACTS;
 
 public class HomeActivity extends AppCompatActivity
@@ -94,6 +96,7 @@ public class HomeActivity extends AppCompatActivity
 
 
 
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -112,6 +115,13 @@ public class HomeActivity extends AppCompatActivity
 
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
+        if(getIntent().getIntExtra("fragmentNumber",0)==1){
+            //set the desired fragment as current fragment to fragment pager
+            System.out.println("YES!");
+            mFragmentTransaction.replace(R.id.containerView,new AgendaFragment()).commit();
+
+        }
+        System.out.println("YES!");
         mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
 
@@ -352,9 +362,9 @@ public class HomeActivity extends AppCompatActivity
 
                                                 // System.out.println(photoUri.toString()); //debug point
 
-                                                downloadUrl = taskSnapshot.getDownloadUrl();
+                                               /* downloadUrl = taskSnapshot.getDownloadUrl();
                                                 rDatabase.child(contactId.toString()).child("photoUrl").setValue(downloadUrl.toString());
-
+*/
 
                                             }
                                         }).addOnFailureListener(new OnFailureListener() {
@@ -374,20 +384,55 @@ public class HomeActivity extends AppCompatActivity
                                         }
                                         emailCursor.close();
 
+                                        //Import Contact Name
+
+                                        rDatabase.child(contactId.toString()).child("name").setValue(cName);
+
                                         Cursor pCur = cr.query(
                                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                                             null,
                                             ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",
                                             new String[]{contactId.toString()}, null);
+                                        int pCount=1;
                                         while (pCur.moveToNext()) {
-                                        String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+                                        /*String phoneNo = pCur.getString(pCur.getColumnIndex(
+                                                ContactsContract.CommonDataKinds.Phone.NUMBER));*/
                                         //Import Contact Phone No.
+                                            int phoneType 		= pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
+                                            //String isStarred 		= pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.STARRED));
+                                            String phoneNo 	= pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                                            //you will get all phone numbers according to it's type as below switch case.
+
+
+                                            switch (phoneType)
+                                            {
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+                                                    rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+                                                    rDatabase.child(contactId.toString()).child("phoneHome").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+                                                    rDatabase.child(contactId.toString()).child("phoneWork").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_WORK_MOBILE:
+                                                    rDatabase.child(contactId.toString()).child("phoneWorkMobile").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER:
+                                                    rDatabase.child(contactId.toString()).child("phoneOther").setValue(phoneNo);
+                                                    break;
+                                                default:
+                                                    rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
+                                                    break;
+                                            }
+
+
+                                            /*if(pCount>1){
+                                                rDatabase.child(contactId.toString()).child("phone_"+(pCount)).setValue(phoneNo);
+                                            }else{
                                         rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
-                                        //Import Contact Name
-
-                                            rDatabase.child(contactId.toString()).child("name").setValue(cName);
-
+                                            }
+                                            pCount = pCount+1;*/
                                         }
                                     pCur.close();
 

@@ -50,16 +50,16 @@
             android:ems="10"
             android:focusable="false"
             android:id="@+id/datePicker" />
-        <AutoCompleteTextView
-        android:id="@+id/agenda_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Title"
-        android:inputType="textAutoComplete"
+        <EditText
+            android:id="@+id/agenda_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Title"
+            android:inputType="textAutoComplete"
             android:layout_marginTop="15dp"
-        android:maxLines="1"
-        android:singleLine="true"
-        android:textColor="@android:color/black" />
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textColor="@android:color/black" />
 
 
 
@@ -67,14 +67,14 @@
             android:inputType="textMultiLine"
             android:hint="Description"
             android:layout_marginTop="15dp"
-        android:lines="8"
-        android:minLines="6"
-        android:gravity="top|left"
-        android:maxLines="10"
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        android:scrollbars="vertical"
-        />
+            android:id="@+id/agenda_description"
+            android:lines="8"
+            android:minLines="6"
+            android:gravity="top|left"
+            android:maxLines="10"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:scrollbars="vertical"/>
 
 
         <TextView

@@ -52,7 +52,7 @@
             android:focusable="false"
             android:id="@+id/datePicker" />
 
-        <AutoCompleteTextView
+        <EditText
         android:id="@+id/agenda_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -69,14 +69,14 @@
             android:inputType="textMultiLine"
             android:hint="Description"
             android:layout_marginTop="15dp"
-        android:lines="8"
-        android:minLines="6"
-        android:gravity="top|left"
-        android:maxLines="10"
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        android:scrollbars="vertical"
-        />
+            android:id="@+id/agenda_description"
+            android:lines="8"
+            android:minLines="6"
+            android:gravity="top|left"
+            android:maxLines="10"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:scrollbars="vertical"/>
 
 
         <TextView

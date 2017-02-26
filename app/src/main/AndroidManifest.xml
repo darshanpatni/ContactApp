@@ -46,6 +46,10 @@
         <activity
             android:name=".AddAgendaActivity"
             android:label="Add Agenda" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBS8EAZdr7yBrD-4W3aiET2I74MfKOXjo4"/>
     </application>
 
 </manifest>

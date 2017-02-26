@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +43,7 @@ import java.util.Locale;
 public class AddAgendaActivity extends AppCompatActivity implements MultiSelectionSpinner.OnMultipleItemsSelectedListener{
 
     int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+    private DatabaseReference mDatabase;
     private DatabaseReference rDatabase;
     FirebaseUser user;
     List<String> names;
@@ -49,12 +51,21 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     Calendar myCalendar;
     DatePickerDialog.OnDateSetListener date;
 
+    MultiSelectionSpinner multiSelectionSpinner;
+    String selectedPlace = null;
+    EditText title;
+    EditText description;
+    EditText datePick;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_agenda);
-        EditText datePick = (EditText) findViewById(R.id.datePicker);
+        datePick = (EditText) findViewById(R.id.datePicker);
         myCalendar = Calendar.getInstance();
+
+        title = (EditText) findViewById(R.id.agenda_title);
+        description = (EditText) findViewById(R.id.agenda_description);
 
         date = new DatePickerDialog.OnDateSetListener() {
 
@@ -81,10 +92,15 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
             }
         });
         user = FirebaseAuth.getInstance().getCurrentUser();
-        rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
+        rDatabase = FirebaseDatabase.getInstance().getReference().child("users")
+                .child(user.getUid()).child(user.getDisplayName()).child("contacts");
         Query query = rDatabase.orderByChild("name");
 
-        final MultiSelectionSpinner multiSelectionSpinner = (MultiSelectionSpinner) findViewById(R.id.mySpinner);
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
+                .child(user.getUid()).child(user.getDisplayName()).child("agenda");
+
+
+        multiSelectionSpinner = (MultiSelectionSpinner) findViewById(R.id.mySpinner);
 
         query.addValueEventListener(new ValueEventListener() {
             @Override
@@ -117,6 +133,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 // TODO: Get info about the selected place.
              //   Toast.makeText(this, , Toast.LENGTH_LONG).show();
               //  Log.i(TAG, "Place: " + place.getName());
+                selectedPlace = place.getName().toString();
             }
 
             @Override
@@ -172,8 +189,38 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_save) {
+
+            String agendaTitle = title.getText().toString();
+            String agendaDescription = description.getText().toString();
+
+            if (TextUtils.isEmpty(agendaTitle)) {
+                Toast.makeText(getApplication(), "Please enter an agenda title.", Toast.LENGTH_SHORT).show();
+            }
+            else if (TextUtils.isEmpty(agendaDescription)) {
+                Toast.makeText(getApplication(), "Please enter some description", Toast.LENGTH_SHORT).show();
+            }
+            else if(date==null){
+                Toast.makeText(getApplication(), "Please select a date", Toast.LENGTH_SHORT).show();
+            }
+            else if(selectedPlace==null){
+                Toast.makeText(getApplication(), "Please enter a place", Toast.LENGTH_SHORT).show();
+            }
+
+            else {
+                DatabaseReference newAgenda = mDatabase.push();
+                newAgenda.child("selectedPlace").setValue(selectedPlace);
+                newAgenda.child("date").setValue(datePick.getText().toString());
+                newAgenda.child("title").setValue(agendaTitle);
+                newAgenda.child("description").setValue(agendaDescription);
+                newAgenda.child("contacts").setValue(multiSelectionSpinner.getSelectedStrings());
+
+                Intent intent = new Intent(this,HomeActivity.class);
+                intent.putExtra("fragmentValue", 1); //for example
+                startActivity(intent);
             return true;
+            }
+
         }
 
         return super.onOptionsItemSelected(item);
