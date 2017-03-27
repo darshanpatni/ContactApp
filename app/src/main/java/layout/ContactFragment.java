@@ -2,17 +2,23 @@ package layout;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -25,7 +31,11 @@ import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
+
+import layout.RecyclerClick_Listener.RecyclerClick_Listener;
 import neeti.contactapp.ContactList;
+import layout.FirebaseAdapter;
 import neeti.contactapp.HomeActivity;
 import neeti.contactapp.R;
 
@@ -51,6 +61,10 @@ public class ContactFragment extends Fragment {
 
     //Recycler Contact list variables
     private RecyclerView mContactList;
+
+
+    FirebaseAdapter firebaseAdapter;
+
     FragmentManager mFragmentManager;
     FragmentTransaction mFragmentTransaction;
     //Firebase Variables
@@ -61,6 +75,11 @@ public class ContactFragment extends Fragment {
     private FirebaseAuth.AuthStateListener mAuthListener;
     FirebaseUser user;
     FirebaseRecyclerAdapter<ContactList, ContactListViewHolder> firebaseRecyclerAdapter;
+
+    private ActionMode mActionMode;
+    private Context context;
+    private SparseBooleanArray mSelectedItemsIds;
+    private static ArrayList<ContactList> contactItems;
 
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
@@ -135,13 +154,24 @@ public class ContactFragment extends Fragment {
 
             ) {
 
-                @Override
-                protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
+                private SparseBooleanArray selectedItems;
 
+
+                @Override
+                protected void populateViewHolder(final ContactListViewHolder viewHolder, ContactList model, int position) {
+
+                    final String contactKey = getRef(position).getKey();
                     viewHolder.contact_Name.setText(model.getName());
                     viewHolder.contact_Phone.setText(model.getPhone());
 
+                    /** Change background color of the selected items in list view  **/
+                    viewHolder.itemView
+                            .setBackgroundColor(mSelectedItemsIds.get(position) ? 0x9934B5E4
+                                    : Color.TRANSPARENT);
+
                 }
+
+
 
             };
             ringProgressDialog.dismiss();
@@ -154,6 +184,74 @@ public class ContactFragment extends Fragment {
 
         return  rootView;
     }
+
+
+
+    //Implement item click and long click over recycler view
+    private void implementRecyclerViewClickListeners() {
+        mContactList.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), mContactList, new RecyclerClick_Listener() {
+            @Override
+            public void onClick(View view, int position) {
+                //If ActionMode not null select item
+                if (mActionMode != null)
+                    onListItemSelect(position);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+                //Select item on long click
+                onListItemSelect(position);
+            }
+        }));
+    }
+
+
+
+    //List item select method
+    private void onListItemSelect(int position) {
+
+        firebaseAdapter.toggleSelection(position);//Toggle the selection
+
+        boolean hasCheckedItems = firebaseAdapter.getSelectedCount() > 0;//Check if any items are already selected or not
+
+
+        if (hasCheckedItems && mActionMode == null)
+            // there are some selected items, start the actionMode
+            mActionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(new Toolbar_ActionMode_Callback(getActivity(),firebaseAdapter,  contactItems));
+        else if (!hasCheckedItems && mActionMode != null)
+            // there no selected items, finish the actionMode
+            mActionMode.finish();
+
+        if (mActionMode != null)
+            //set action mode title on item selection
+            mActionMode.setTitle(String.valueOf(
+                    firebaseAdapter.getSelectedCount()) + " selected");
+    }
+
+    public void setNullToActionMode() {
+        if (mActionMode != null)
+            mActionMode = null;
+    }
+
+    //Delete selected rows
+    public void deleteRows() {
+        SparseBooleanArray selected = firebaseAdapter.getSelectedIds();//Get selected ids
+
+        //Loop all selected ids
+        for (int i = (selected.size() - 1); i >= 0; i--) {
+            if (selected.valueAt(i)) {
+                //If current id is selected remove the item via key
+                contactItems.remove(selected.keyAt(i));
+                firebaseAdapter.notifyDataSetChanged();//notify adapter
+
+            }
+        }
+        Toast.makeText(getActivity(), selected.size() + " item deleted.", Toast.LENGTH_SHORT).show();//Show Toast
+        mActionMode.finish();//Finish action mode after use
+
+    }
+
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {

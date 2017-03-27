@@ -43,6 +43,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:10.0.1'
     compile 'com.google.android.gms:play-services-places:10.0.1'
     compile 'com.craft.libraries:firebaseui-android-addons:0.1.0'
+    compile 'com.google.android.gms:play-services-location:10.0.1'
 }
 
 

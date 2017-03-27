@@ -65,6 +65,7 @@ public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
 
+
     FragmentManager mFragmentManager;
     FragmentTransaction mFragmentTransaction;
     //Firebase Variables
@@ -121,7 +122,6 @@ public class HomeActivity extends AppCompatActivity
             mFragmentTransaction.replace(R.id.containerView,new AgendaFragment()).commit();
 
         }
-        System.out.println("YES!");
         mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
 

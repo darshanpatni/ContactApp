@@ -22,4 +22,8 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!--  Action Mode Menu Items -->
+    <string name="delete">Delete</string>
+    <string name="location">Allocate location</string>
 </resources>
