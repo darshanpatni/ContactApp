@@ -212,6 +212,45 @@ public class HomeActivity extends AppCompatActivity
 
         });
 
+
+        //initialize floating action button
+        final FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.fab1);
+        fab1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Creating the instance of PopupMenu
+                PopupMenu popup = new PopupMenu(HomeActivity.this, fab1);
+                //Inflating the Popup using xml file
+                popup.getMenuInflater().inflate(R.menu.popup_menu1, popup.getMenu());
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+
+                        System.out.println(item.getTitle().toString());
+                        if(item.getItemId()==R.id.exploreContact){
+                            startActivity(new Intent(HomeActivity.this, ContactMapActivity.class));
+                            finish();
+                            return true;
+                        }
+                        if(item.getItemId()==R.id.exploreAgenda){
+                            startActivity(new Intent(HomeActivity.this, AgendaMapActivity.class));
+                            finish();
+                            return true;
+                        }
+                        Toast.makeText(HomeActivity.this,"You Clicked : " + item.getTitle(),Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
+
+                popup.show();//showing popup menu
+            }
+                /*Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
+        });
+
+
         //initialize navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="neeti.contactapp">
@@ -11,13 +10,13 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        tools:replace="android:label"
         android:name=".ContactApp"
         android:allowBackup="true"
         android:icon="@drawable/icon"
         android:label="ContactApp"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:label">
         <activity
             android:name=".LoginActivity"
             android:label="Pin Contact">
@@ -49,7 +48,10 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBS8EAZdr7yBrD-4W3aiET2I74MfKOXjo4"/>
+            android:value="AIzaSyBS8EAZdr7yBrD-4W3aiET2I74MfKOXjo4" />
+
+        <activity android:name=".ContactMapActivity" />
+        <activity android:name=".AgendaMapActivity"></activity>
     </application>
 
 </manifest>

@@ -22,6 +22,7 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -52,10 +53,17 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     DatePickerDialog.OnDateSetListener date;
 
     MultiSelectionSpinner multiSelectionSpinner;
-    String selectedPlace = null;
     EditText title;
     EditText description;
     EditText datePick;
+
+    String selectedPlace = null;
+    String selectedPlaceAdd = null;
+    double selectLatitude;
+    double selectLongitude;
+
+    private double MyLat;
+    private double MyLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,6 +142,14 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
              //   Toast.makeText(this, , Toast.LENGTH_LONG).show();
               //  Log.i(TAG, "Place: " + place.getName());
                 selectedPlace = place.getName().toString();
+                selectedPlaceAdd = place.getAddress().toString();
+
+
+                LatLng selectedPlaceLatLng = place.getLatLng();
+
+                selectLatitude = selectedPlaceLatLng.latitude;
+                selectLongitude = selectedPlaceLatLng.longitude;
+
             }
 
             @Override
@@ -210,6 +226,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
             else {
                 DatabaseReference newAgenda = mDatabase.push();
                 newAgenda.child("selectedPlace").setValue(selectedPlace);
+                newAgenda.child("selectedPlaceAdd").setValue(selectedPlaceAdd);
+                newAgenda.child("selectLatitude").setValue(selectLatitude);
+                newAgenda.child("selectLongitude").setValue(selectLongitude);
                 newAgenda.child("date").setValue(datePick.getText().toString());
                 newAgenda.child("title").setValue(agendaTitle);
                 newAgenda.child("description").setValue(agendaDescription);
