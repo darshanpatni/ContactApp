@@ -38,6 +38,7 @@ import neeti.contactapp.MultiSelectionSpinner;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -57,6 +58,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     EditText description;
     EditText datePick;
 
+    private HashMap<String, String> hashMapContact = new HashMap<String, String>();
+
+    private HashMap<String, String> hashMapContact1 = new HashMap<String, String>();
     String selectedPlace = null;
     String selectedPlaceAdd = null;
     double selectLatitude;
@@ -117,8 +121,12 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 names.add("NONE");
                 for(DataSnapshot nameSnapshot: dataSnapshot.getChildren()){
                     String contactName = nameSnapshot.child("name").getValue(String.class);
+                    String id = nameSnapshot.getKey();
+                    hashMapContact.put(contactName, id);
                     names.add(contactName);
+
                 }
+
                 multiSelectionSpinner.setItems(names);
 
             }
@@ -232,7 +240,30 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 newAgenda.child("date").setValue(datePick.getText().toString());
                 newAgenda.child("title").setValue(agendaTitle);
                 newAgenda.child("description").setValue(agendaDescription);
-                newAgenda.child("contacts").setValue(multiSelectionSpinner.getSelectedStrings());
+
+                List contactNames = multiSelectionSpinner.getSelectedStrings();
+
+
+                for(int i=0; i<contactNames.size();i++){
+                    String contactName = (String) contactNames.get(i);
+                    String contactID = hashMapContact.get(contactName);
+
+                    hashMapContact1.put(contactName, contactID);
+                    if(contactName=="NONE") {
+
+                        contactNames.remove(i);
+                    }
+                    else{
+                        DatabaseReference contact = newAgenda.child("contacts").push();
+                        contact.child("contactName").setValue(contactName);
+                        contact.child("contactID").setValue(contactID);
+
+                    }
+
+                }
+
+                //newAgenda.child("contacts").setValue(hashMapContact1.);
+               // newAgenda.child("contacts").setValue(contactNames);
 
                 Intent intent = new Intent(this,HomeActivity.class);
                 intent.putExtra("fragmentValue", 1); //for example

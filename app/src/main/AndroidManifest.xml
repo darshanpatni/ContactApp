@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:name=".ContactApp"
@@ -46,12 +49,18 @@
             android:name=".AddAgendaActivity"
             android:label="Add Agenda" />
 
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBS8EAZdr7yBrD-4W3aiET2I74MfKOXjo4" />
+            android:value="AIzaSyA6lWI6upw5jLDvH7excw4HAGJsQchL71Q" />
 
-        <activity android:name=".ContactMapActivity" />
-        <activity android:name=".AgendaMapActivity"></activity>
+        <activity android:name=".ContactMapActivity"
+            android:label="Explore Contacts"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".AgendaMapActivity"
+            android:label="Explore Agenda"
+            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".ContactInfoActivity"></activity>
     </application>
 
 </manifest>

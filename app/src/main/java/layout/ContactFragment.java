@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -13,10 +14,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.maps.model.Marker;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -24,6 +27,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
 
 import neeti.contactapp.ContactList;
 import neeti.contactapp.HomeActivity;
@@ -46,6 +51,8 @@ public class ContactFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private HashMap<Integer, String> hashMapContact;
 
     private OnFragmentInteractionListener mListener;
 
@@ -136,12 +143,28 @@ public class ContactFragment extends Fragment {
             ) {
 
                 @Override
-                protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, int position) {
-
+                protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, final int position) {
                     viewHolder.contact_Name.setText(model.getName());
                     viewHolder.contact_Phone.setText(model.getPhone());
 
+                    viewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                           String key = firebaseRecyclerAdapter.getRef(position).getKey();
+                            Toast.makeText(getActivity(),  "Position: "+position+" Key: "+key, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                   /* viewHolder.mView.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            Toast.makeText(getActivity(), position, Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                    });*/
                 }
+
 
             };
             ringProgressDialog.dismiss();
@@ -150,6 +173,7 @@ public class ContactFragment extends Fragment {
 
         }
         mAuth = FirebaseAuth.getInstance();
+
 
 
         return  rootView;
@@ -200,13 +224,28 @@ public class ContactFragment extends Fragment {
         TextView contact_Name;
         TextView contact_Phone;
 
+
+
         public ContactListViewHolder(View itemView) {
             super(itemView);
             contact_Name = (TextView) itemView.findViewById(R.id.ContactName);
             contact_Phone = (TextView) itemView.findViewById(R.id.ContactPhone);
             mView = itemView;
+
+
         }
 
+        private ContactListViewHolder.ClickListener mClickListener;
+
+        //Interface to send callbacks...
+        public interface ClickListener{
+            public void onItemClick(View view, int position);
+            public void onItemLongClick(View view, int position);
+        }
+
+        public void setOnClickListener(ContactListViewHolder.ClickListener clickListener){
+            mClickListener = clickListener;
+        }
+    }
     }
 
-}

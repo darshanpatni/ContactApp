@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -120,10 +121,19 @@ public class AgendaFragment extends Fragment {
             ) {
 
                 @Override
-                protected void populateViewHolder(AgendaListViewHolder viewHolder, AgendaList model, int position) {
+                protected void populateViewHolder(AgendaListViewHolder viewHolder, AgendaList model, final int position) {
 
                     viewHolder.agenda_title.setText(model.getTitle());
                     viewHolder.agenda_date.setText(model.getDate());
+
+                    viewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                            String key = firebaseRecyclerAdapter.getRef(position).getKey();
+                            Toast.makeText(getActivity(),  key, Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
                 }
 
