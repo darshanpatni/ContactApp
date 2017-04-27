@@ -8,11 +8,17 @@ import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,7 +48,7 @@ import neeti.contactapp.R;
  * Use the {@link ContactFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ContactFragment extends Fragment {
+public class ContactFragment extends Fragment implements SearchView.OnQueryTextListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -51,6 +57,8 @@ public class ContactFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    ProgressDialog ringProgressDialog;
 
     private HashMap<Integer, String> hashMapContact;
 
@@ -66,9 +74,10 @@ public class ContactFragment extends Fragment {
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    String searchQuery = "";
     FirebaseUser user;
     FirebaseRecyclerAdapter<ContactList, ContactListViewHolder> firebaseRecyclerAdapter;
-
+    Query query = null;
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
 
@@ -113,13 +122,13 @@ public class ContactFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_contact, container, false);
-
+        setHasOptionsMenu(true);
         //initialize Recycler view
         mContactList = (RecyclerView) rootView.findViewById(R.id.contact_list);
         //mContactList.setHasFixedSize(true);
         mContactList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = null;
+        query = null;
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
@@ -128,48 +137,13 @@ public class ContactFragment extends Fragment {
             rDatabase.keepSynced(true);
             query = rDatabase.orderByChild("name");
 
-            final ProgressDialog ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
+            ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
 
             ringProgressDialog.show();
             //initialize FirebaseRecyclerAdapter
 
-            firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
+            displayRecyclerView(query);
 
-                    ContactList.class,
-                    R.layout.contact_list_row,
-                    ContactListViewHolder.class,
-                    query
-
-            ) {
-
-                @Override
-                protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, final int position) {
-                    viewHolder.contact_Name.setText(model.getName());
-                    viewHolder.contact_Phone.setText(model.getPhone());
-
-                    viewHolder.mView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-
-                           String key = firebaseRecyclerAdapter.getRef(position).getKey();
-                            Toast.makeText(getActivity(),  "Position: "+position+" Key: "+key, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                   /* viewHolder.mView.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            Toast.makeText(getActivity(), position, Toast.LENGTH_SHORT).show();
-                            return false;
-                        }
-                    });*/
-                }
-
-
-            };
-            ringProgressDialog.dismiss();
-            firebaseRecyclerAdapter.notifyDataSetChanged();
-            mContactList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
 
         }
         mAuth = FirebaseAuth.getInstance();
@@ -202,6 +176,34 @@ public class ContactFragment extends Fragment {
         super.onDetach();
         mListener = null;
     }
+
+    @Override
+    public boolean onQueryTextSubmit(String input) {
+        searchQuery = input;
+        query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mContactList.setAdapter(firebaseRecyclerAdapter);
+        displayRecyclerView(query);
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if(TextUtils.isEmpty(newText)){
+            searchQuery = "";
+            query = rDatabase.orderByChild("lowName");
+
+        }
+        else{
+            searchQuery = newText;
+            query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+        }
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mContactList.setAdapter(firebaseRecyclerAdapter);
+        displayRecyclerView(query);
+        return false;
+    }
+
 
     /**
      * This interface must be implemented by activities that contain this
@@ -246,6 +248,60 @@ public class ContactFragment extends Fragment {
         public void setOnClickListener(ContactListViewHolder.ClickListener clickListener){
             mClickListener = clickListener;
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        super.onCreateOptionsMenu(menu,inflater);
+
+        inflater.inflate(R.menu.fragment_search, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) item.getActionView();
+        //MenuItemCompat.setShowAsAction(item, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+        //MenuItemCompat.setActionView(item, searchView);
+        searchView.setOnQueryTextListener(this);
+
+        searchView.setQueryHint("Search");
+
+        super.onCreateOptionsMenu(menu, inflater);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void displayRecyclerView(Query query){
+
+        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(
+
+                ContactList.class,
+                R.layout.contact_list_row,
+                ContactListViewHolder.class,
+                query
+
+        ) {
+
+            @Override
+            protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, final int position) {
+
+                viewHolder.contact_Name.setText(model.getName());
+                viewHolder.contact_Phone.setText(model.getPhone());
+
+                viewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        String key = firebaseRecyclerAdapter.getRef(position).getKey();
+                        Toast.makeText(getActivity(), "Position: " + position + " Key: " + key, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+
+        };
+        ringProgressDialog.dismiss();
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mContactList.setAdapter(firebaseRecyclerAdapter);
+        //set adapter for recycler view
     }
     }
 

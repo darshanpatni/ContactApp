@@ -184,6 +184,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 DatabaseReference newContact = mDatabase.push();
 
                 newContact.child("name").setValue(contactName.getText().toString());
+                newContact.child("lowName").setValue(contactName.getText().toString().toLowerCase());
                 newContact.child("phone").setValue(contactPhone.getText().toString());
                 if (selectedPlace!=null){
                     newContact.child("selectedPlace").setValue(selectedPlace);

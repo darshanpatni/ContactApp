@@ -7,9 +7,14 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +39,7 @@ import neeti.contactapp.R;
  * Use the {@link AgendaFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AgendaFragment extends Fragment {
+public class AgendaFragment extends Fragment implements SearchView.OnQueryTextListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -56,6 +61,9 @@ public class AgendaFragment extends Fragment {
     FirebaseUser user;
     FirebaseRecyclerAdapter<AgendaList, AgendaFragment.AgendaListViewHolder> firebaseRecyclerAdapter;
 
+    ProgressDialog ringProgressDialog;
+    String searchQuery = "";
+    Query query = null;
     public AgendaFragment() {
         // Required empty public constructor
     }
@@ -92,12 +100,12 @@ public class AgendaFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_agenda, container, false);
-
+        setHasOptionsMenu(true);
         //initialize Recycler view
         mAgendaList = (RecyclerView) rootView.findViewById(R.id.agenda_list);
         mAgendaList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        Query query = null;
+
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
         user = FirebaseAuth.getInstance().getCurrentUser();
@@ -106,41 +114,13 @@ public class AgendaFragment extends Fragment {
             rDatabase.keepSynced(true);
             query = rDatabase;
 
-            final ProgressDialog ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Agendas", true);
+            ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Agendas", true);
 
             ringProgressDialog.show();
+            displayRecyclerView(query);
             //initialize FirebaseRecyclerAdapter
 
-            firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<AgendaList, AgendaListViewHolder>(
-
-                    AgendaList.class,
-                    R.layout.agenda_list_row,
-                    AgendaListViewHolder.class,
-                    query
-
-            ) {
-
-                @Override
-                protected void populateViewHolder(AgendaListViewHolder viewHolder, AgendaList model, final int position) {
-
-                    viewHolder.agenda_title.setText(model.getTitle());
-                    viewHolder.agenda_date.setText(model.getDate());
-
-                    viewHolder.mView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-
-                            String key = firebaseRecyclerAdapter.getRef(position).getKey();
-                            Toast.makeText(getActivity(),  key, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                }
-
-            };
-            ringProgressDialog.dismiss();
-            firebaseRecyclerAdapter.notifyDataSetChanged();
-            mAgendaList.setAdapter(firebaseRecyclerAdapter);        //set adapter for recycler view
+      //set adapter for recycler view
 
         }
         mAuth = FirebaseAuth.getInstance();
@@ -173,6 +153,33 @@ public class AgendaFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public boolean onQueryTextSubmit(String input) {
+        searchQuery = input;
+        query = rDatabase.orderByChild("lowTitle").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mAgendaList.setAdapter(firebaseRecyclerAdapter);
+        displayRecyclerView(query);
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if(TextUtils.isEmpty(newText)){
+            searchQuery = "";
+            query = rDatabase.orderByChild("lowTitle");
+
+        }
+        else{
+            searchQuery = newText;
+            query = rDatabase.orderByChild("lowTitle").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+        }
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mAgendaList.setAdapter(firebaseRecyclerAdapter);
+        displayRecyclerView(query);
+        return false;
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -200,6 +207,59 @@ public class AgendaFragment extends Fragment {
             agenda_date = (TextView) itemView.findViewById(R.id.agendaDate);
             mView = itemView;
         }
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        super.onCreateOptionsMenu(menu,inflater);
+
+        inflater.inflate(R.menu.fragment_search, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) item.getActionView();
+        //MenuItemCompat.setShowAsAction(item, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+        //MenuItemCompat.setActionView(item, searchView);
+        searchView.setOnQueryTextListener(this);
+
+        searchView.setQueryHint("Search");
+
+        super.onCreateOptionsMenu(menu, inflater);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    public void displayRecyclerView(Query query){
+        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<AgendaList, AgendaListViewHolder>(
+
+                AgendaList.class,
+                R.layout.agenda_list_row,
+                AgendaListViewHolder.class,
+                query
+
+        ) {
+
+            @Override
+            protected void populateViewHolder(AgendaListViewHolder viewHolder, AgendaList model, final int position) {
+
+                viewHolder.agenda_title.setText(model.getTitle());
+                viewHolder.agenda_date.setText(model.getDate());
+
+                viewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        String key = firebaseRecyclerAdapter.getRef(position).getKey();
+                        Toast.makeText(getActivity(),  key, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            }
+
+        };
+        ringProgressDialog.dismiss();
+        firebaseRecyclerAdapter.notifyDataSetChanged();
+        mAgendaList.setAdapter(firebaseRecyclerAdapter);
 
     }
 }

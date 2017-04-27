@@ -29,6 +29,14 @@ public class ContactList {
         return name;
     }
 
+    public String findName(String searchQuery){
+        if(searchQuery.equalsIgnoreCase(name)){
+            return name;
+        }
+        else
+            return null;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

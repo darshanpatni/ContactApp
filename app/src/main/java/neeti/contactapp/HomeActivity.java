@@ -426,6 +426,7 @@ public class HomeActivity extends AppCompatActivity
                                         //Import Contact Name
 
                                         rDatabase.child(contactId.toString()).child("name").setValue(cName);
+                                        rDatabase.child(contactId.toString()).child("lowName").setValue(cName.toLowerCase());
 
                                         Cursor pCur = cr.query(
                                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,

@@ -239,6 +239,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 newAgenda.child("selectLongitude").setValue(selectLongitude);
                 newAgenda.child("date").setValue(datePick.getText().toString());
                 newAgenda.child("title").setValue(agendaTitle);
+                newAgenda.child("lowTitle").setValue(agendaTitle.toLowerCase());
                 newAgenda.child("description").setValue(agendaDescription);
 
                 List contactNames = multiSelectionSpinner.getSelectedStrings();
