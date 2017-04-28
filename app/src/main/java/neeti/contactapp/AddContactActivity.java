@@ -98,7 +98,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     private double MyLong;
 
     FloatingActionButton fab;
-    Uri uri;//To store image Uri
+    Uri uri = null;//To store image Uri
     String uriUpload;
 
     @Override
@@ -114,7 +114,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         user = FirebaseAuth.getInstance().getCurrentUser();
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(user.getUid()).child(user.getDisplayName()).child("contacts");
-        Query query = rDatabase.orderByChild("name");
+        Query query = rDatabase.orderByChild("lowName");
 
         mStorageRef = FirebaseStorage.getInstance().getReference();//Storage Reference variable
 
@@ -268,31 +268,31 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
                 Uid = user.getUid();
 
-                String uriPath = uri.getPath();
                 //String newPath = decodeFile(uriPath);
 
                // uri = Uri.parse(newPath);
                 //uri  = Uri.parse(uriUpload);
-                StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhone.getText().toString()+"/contactPhoto");
-                filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                if(uri!=null){StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhone.getText().toString()+"/contactPhoto");
+                    filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                        // System.out.println(photoUri.toString());
-                        @SuppressWarnings("VisibleForTests")
-                        String downloadUrl = taskSnapshot.getDownloadUrl().toString();
-                        newContact.child("photoUrl").setValue(downloadUrl);
-                        Toast.makeText(AddContactActivity.this, "Upload Successful",
-                                Toast.LENGTH_LONG).show();
+                            // System.out.println(photoUri.toString());
+                            @SuppressWarnings("VisibleForTests")
+                            String downloadUrl = taskSnapshot.getDownloadUrl().toString();
+                            newContact.child("photoUrl").setValue(downloadUrl);
+                            Toast.makeText(AddContactActivity.this, "Upload Successful",
+                                    Toast.LENGTH_LONG).show();
 
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(AddContactActivity.this, "Upload unsuccessful",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(AddContactActivity.this, "Upload unsuccessful",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });}
+
 
                 Intent intent = new Intent(this,HomeActivity.class);
                 intent.putExtra("fragmentValue", 1); //for example
