@@ -4,12 +4,12 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_importContacts"
-            android:icon="@drawable/import_contacts"
+            android:icon="@drawable/ic_action_import"
             android:title="Import Contacts" />
 
         <item
             android:id="@+id/nav_logout"
-            android:icon="@drawable/logout"
+            android:icon="@drawable/ic_action_logout"
             android:title="Log Out" />
     </group>
 

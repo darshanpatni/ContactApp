@@ -136,17 +136,7 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         }
     }
 
-   /* @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-*/
+
     @Override
     public void onDetach() {
         super.onDetach();
@@ -155,7 +145,7 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
 
     @Override
     public boolean onQueryTextSubmit(String input) {
-        searchQuery = input;
+        searchQuery = input.toLowerCase();
         query = rDatabase.orderByChild("lowTitle").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
         firebaseRecyclerAdapter.notifyDataSetChanged();
         mAgendaList.setAdapter(firebaseRecyclerAdapter);
@@ -171,7 +161,7 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
 
         }
         else{
-            searchQuery = newText;
+            searchQuery = newText.toLowerCase();
             query = rDatabase.orderByChild("lowTitle").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
         }
         firebaseRecyclerAdapter.notifyDataSetChanged();

@@ -1,18 +1,35 @@
 package neeti.contactapp;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -24,6 +41,8 @@ import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,31 +51,43 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddContactActivity extends AppCompatActivity implements MultiSelectionSpinner.OnMultipleItemsSelectedListener{
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+
+public class AddContactActivity extends AppCompatActivity implements MultiSelectionSpinner.OnMultipleItemsSelectedListener {
 
     int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
     private DatabaseReference mDatabase;
     private DatabaseReference rDatabase;
+    private StorageReference mStorageRef;
     FirebaseUser user;
     List<String> names;
 
+    String Uid;
     MultiSelectionSpinner multiSelectionSpinner;
     Spinner contactSpinner;
     EditText contactName;
     EditText contactPhone;
     EditText contactEmail;
     EditText contactCompany;
-
+    ImageButton call;
     //permission constants
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
     private static final int GALLERY_INTENT = 2;
 
     Button selectImage;
-    ImageView dPhoto;
+    ImageView contactPhoto;
 
     String selectedPlace = null;
     String selectedPlaceAdd = null;
@@ -66,7 +97,9 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     private double MyLat;
     private double MyLong;
 
+    FloatingActionButton fab;
     Uri uri;//To store image Uri
+    String uriUpload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,23 +110,25 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         contactCompany = (EditText) findViewById(R.id.contact_company);
         contactEmail = (EditText) findViewById(R.id.contact_email);
         contactSpinner = (Spinner) findViewById(R.id.mySpinner);
-
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         user = FirebaseAuth.getInstance().getCurrentUser();
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(user.getUid()).child(user.getDisplayName()).child("contacts");
         Query query = rDatabase.orderByChild("name");
 
+        mStorageRef = FirebaseStorage.getInstance().getReference();//Storage Reference variable
+
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(user.getUid()).child(user.getDisplayName()).child("contacts");
 
-       // multiSelectionSpinner = (MultiSelectionSpinner) findViewById(R.id.mySpinner);
+        // multiSelectionSpinner = (MultiSelectionSpinner) findViewById(R.id.mySpinner);
 
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 names = new ArrayList<String>();
                 names.add("NONE");
-                for(DataSnapshot nameSnapshot: dataSnapshot.getChildren()){
+                for (DataSnapshot nameSnapshot : dataSnapshot.getChildren()) {
                     String contactName = nameSnapshot.child("name").getValue(String.class);
                     names.add(contactName);
                 }
@@ -129,7 +164,6 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 selectLongitude = selectedPlaceLatLng.longitude;
 
 
-
             }
 
             @Override
@@ -139,6 +173,19 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
             }
         });
 
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, GALLERY_INTENT);
+            }
+        });
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            //do your check here
+            mayRequestExternalStorage();
+        }
 
     }
 
@@ -158,6 +205,21 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 // The user canceled the operation.
             }
         }
+
+        if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK){
+
+            contactPhoto = (ImageView) findViewById(R.id.contactPhoto);
+            uri = data.getData();
+
+            Picasso.with(this)
+                    .load(uri)
+                    .transform(new CircleTransform())
+
+                    .into(contactPhoto);
+        }
+//.resize(60,60)
+// .centerCrop()
+
     }
 
 
@@ -173,15 +235,15 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
 
             if (TextUtils.isEmpty(contactName.getText())) {
-                Toast.makeText(getApplication(), "Please enter an agenda title.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplication(), "Please enter contact name.", Toast.LENGTH_SHORT).show();
             }
             else if (TextUtils.isEmpty(contactPhone.getText())) {
-                Toast.makeText(getApplication(), "Please enter some description", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplication(), "Please enter phone no", Toast.LENGTH_SHORT).show();
             }
 
 
             else {
-                DatabaseReference newContact = mDatabase.push();
+                final DatabaseReference newContact = mDatabase.push();
 
                 newContact.child("name").setValue(contactName.getText().toString());
                 newContact.child("lowName").setValue(contactName.getText().toString().toLowerCase());
@@ -201,6 +263,36 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 if (contactCompany.getText()!=null){
                     newContact.child("company").setValue(contactCompany.getText().toString());
                 }
+
+                user = FirebaseAuth.getInstance().getCurrentUser();
+
+                Uid = user.getUid();
+
+                String uriPath = uri.getPath();
+                //String newPath = decodeFile(uriPath);
+
+               // uri = Uri.parse(newPath);
+                //uri  = Uri.parse(uriUpload);
+                StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhone.getText().toString()+"/contactPhoto");
+                filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                        // System.out.println(photoUri.toString());
+                        @SuppressWarnings("VisibleForTests")
+                        String downloadUrl = taskSnapshot.getDownloadUrl().toString();
+                        newContact.child("photoUrl").setValue(downloadUrl);
+                        Toast.makeText(AddContactActivity.this, "Upload Successful",
+                                Toast.LENGTH_LONG).show();
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(AddContactActivity.this, "Upload unsuccessful",
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
 
                 Intent intent = new Intent(this,HomeActivity.class);
                 intent.putExtra("fragmentValue", 1); //for example
@@ -237,4 +329,80 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
+    //Request permission to access External Storage (Required for API 23 or greater)
+    private boolean mayRequestExternalStorage() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        if (shouldShowRequestPermissionRationale(READ_EXTERNAL_STORAGE)) {
+            if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(AddContactActivity.this, "Permission Granted",
+                        Toast.LENGTH_LONG).show();
+                //File write logic here
+                return true;
+            }
+        } else {
+
+            requestPermissions(new String[]{READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
+        }
+        return false;
+    }
+
+    /*private String decodeFile(String path) {
+        String strMyImagePath = null;
+        Bitmap scaledBitmap = null;
+
+        try {
+            // Part 1: Decode image
+            Bitmap unscaledBitmap = ScalingUtilities.decodeFile(path, 800, 800, ScalingUtilities.ScalingLogic.CROP);
+
+            if (!(unscaledBitmap.getWidth() <= 800 && unscaledBitmap.getHeight() <= 800)) {
+                // Part 2: Scale image
+                scaledBitmap = ScalingUtilities.createScaledBitmap(unscaledBitmap, 800, 800, ScalingUtilities.ScalingLogic.CROP);
+            } else {
+                unscaledBitmap.recycle();
+                return path;
+            }
+
+            // Store to tmp file
+
+            String extr = Environment.getExternalStorageDirectory().toString();
+            File mFolder = new File(extr + "/myTmpDir");
+            if (!mFolder.exists()) {
+                mFolder.mkdir();
+            }
+
+            String s = "tmp.png";
+
+            File f = new File(mFolder.getAbsolutePath(), s);
+
+            strMyImagePath = f.getAbsolutePath();
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(f);
+                scaledBitmap.compress(Bitmap.CompressFormat.PNG, 70, fos);
+                fos.flush();
+                fos.close();
+            } catch (FileNotFoundException e) {
+
+                e.printStackTrace();
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+
+            scaledBitmap.recycle();
+        } catch (Throwable e) {
+        }
+
+        if (strMyImagePath == null) {
+            return path;
+        }
+        return strMyImagePath;
+
+    }*/
 }

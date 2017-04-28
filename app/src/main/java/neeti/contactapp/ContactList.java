@@ -9,12 +9,13 @@ public class ContactList {
 
     private String name;
     private String phone;
-
+    private String photoUrl;
     public ContactList(){}
 
-    public ContactList(String name, String phone) {
+    public ContactList(String name, String phone, String photoUrl) {
         this.name = name;
         this.phone = phone;
+        this.photoUrl = photoUrl;
     }
 
     public String getPhone() {
@@ -42,5 +43,11 @@ public class ContactList {
     }
 
 
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
 
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
 }

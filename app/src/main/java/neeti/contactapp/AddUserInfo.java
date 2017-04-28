@@ -50,7 +50,7 @@ public class AddUserInfo extends AppCompatActivity {
     Button selectImage;
     ImageView dPhoto;
 
-    Uri uri;//To store image Uri
+    Uri uri = null;//To store image Uri
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,13 +144,16 @@ public class AddUserInfo extends AppCompatActivity {
     }
 
     //Save User Display Name and Display Photo
-    public void Save(){
+    public void Save() {
 
         String NewName = dName.getText().toString();
 
-        if(NewName!=null) {
+        if (NewName != null) {
 
             progressBar.setVisibility(View.VISIBLE);//Set progress bar visible
+
+            if (uri != null) {
+
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(NewName)
                     .setPhotoUri(Uri.parse(uri.toString()))
@@ -171,8 +174,29 @@ public class AddUserInfo extends AppCompatActivity {
                         }
 
                     });
-        }
+            }
+            else{
+                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                        .setDisplayName(NewName)
+                        .build();
+                user.updateProfile(profileUpdates)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
 
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(AddUserInfo.this, "Registration completed. Please Login!",
+                                            Toast.LENGTH_LONG).show();
+                                    mAuth.signOut();
+                                    startActivity(new Intent(AddUserInfo.this, LoginActivity.class));
+                                    finish();
+                                }
+                            }
+
+                        });
+            }
+        }
         else{
 
             Toast.makeText(AddUserInfo.this, "Please enter your name.",
@@ -194,6 +218,7 @@ public class AddUserInfo extends AppCompatActivity {
 
             Picasso.with(this)
                     .load(uri)
+                    .transform(new CircleTransform())
                     .into(dPhoto);
             StorageReference filepath = mStorageRef.child("users/"+Uid+"/profilePhoto");
             filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {

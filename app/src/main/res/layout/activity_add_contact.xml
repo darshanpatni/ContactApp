@@ -11,17 +11,18 @@
 
         <LinearLayout
             android:id="@+id/viewA"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:background="@color/ContactPhone"
-            android:orientation="horizontal">
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_person"
-                android:id="@+id/imageView2"
-                android:layout_weight="1" />
+                android:id="@+id/contactPhoto"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_horizontal"
+                app:srcCompat="@drawable/ic_contact_photo"
+                />
         </LinearLayout>
 
         <LinearLayout
@@ -63,15 +64,14 @@
                         android:singleLine="true"
                         android:textColor="@android:color/black" />
 
+
                     <EditText
                         android:id="@+id/contact_phone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Phone"
-                        android:inputType="text"
-                        android:maxLines="1"
-                        android:singleLine="true"
-                        android:textColor="@android:color/black" />
+                        android:ems="10"
+                        android:inputType="phone" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -109,14 +109,6 @@
                         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
                         />
 
-
-
-
-
-
-
-
-
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -143,6 +135,8 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:textColor="@android:color/black" />
+
+
                 </LinearLayout>
             </ScrollView>
 
@@ -157,7 +151,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:clickable="true"
-        android:src="@drawable/ic_add_a_photo"
+        android:src="@drawable/ic_action_select"
         app:layout_anchor="@id/viewA"
         app:layout_anchorGravity="bottom|right|end"/>
 

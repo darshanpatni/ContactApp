@@ -2,6 +2,7 @@ package layout;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -18,14 +19,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -33,12 +36,23 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
+import neeti.contactapp.CircleTransform;
 import neeti.contactapp.ContactList;
 import neeti.contactapp.HomeActivity;
 import neeti.contactapp.R;
+import xyz.danoz.recyclerviewfastscroller.sectionindicator.title.SectionTitleIndicator;
+import xyz.danoz.recyclerviewfastscroller.vertical.VerticalRecyclerViewFastScroller;
+
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -57,6 +71,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    ImageButton call;
 
     ProgressDialog ringProgressDialog;
 
@@ -78,8 +94,13 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     FirebaseUser user;
     FirebaseRecyclerAdapter<ContactList, ContactListViewHolder> firebaseRecyclerAdapter;
     Query query = null;
+
+    TextView phone;
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
+
+    VerticalRecyclerViewFastScroller fastScroller;
+    SectionTitleIndicator sectionTitleIndicator;
 
     private Long contactId;
     private Uri downloadUrl = null;
@@ -127,7 +148,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         mContactList = (RecyclerView) rootView.findViewById(R.id.contact_list);
         //mContactList.setHasFixedSize(true);
         mContactList.setLayoutManager(new LinearLayoutManager(getActivity()));
-
+        fastScroller = (VerticalRecyclerViewFastScroller) rootView.findViewById(R.id.fast_scroller);
+        //sectionTitleIndicator = (SectionTitleIndicator) rootView.findViewById(R.id.fast_scroller_section_title_indicator);
         query = null;
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
@@ -135,7 +157,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         if (user != null) {
             rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
             rDatabase.keepSynced(true);
-            query = rDatabase.orderByChild("name");
+            query = rDatabase.orderByChild("lowName");
 
             ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
 
@@ -143,12 +165,12 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
             //initialize FirebaseRecyclerAdapter
 
             displayRecyclerView(query);
-
-
+            fastScroller.setRecyclerView(mContactList);
+          //  fastScroller.setSectionIndicator(sectionTitleIndicator);
+            mContactList.setOnScrollListener(fastScroller.getOnScrollListener());
+            setRecyclerViewLayoutManager(mContactList);
         }
         mAuth = FirebaseAuth.getInstance();
-
-
 
         return  rootView;
     }
@@ -179,7 +201,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public boolean onQueryTextSubmit(String input) {
-        searchQuery = input;
+        searchQuery = input.toLowerCase();
+
         query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
         firebaseRecyclerAdapter.notifyDataSetChanged();
         mContactList.setAdapter(firebaseRecyclerAdapter);
@@ -195,7 +218,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
         }
         else{
-            searchQuery = newText;
+            searchQuery = newText.toLowerCase();
             query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
         }
         firebaseRecyclerAdapter.notifyDataSetChanged();
@@ -225,17 +248,19 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         View mView;
         TextView contact_Name;
         TextView contact_Phone;
-
+        ImageView contactImage;
 
 
         public ContactListViewHolder(View itemView) {
             super(itemView);
             contact_Name = (TextView) itemView.findViewById(R.id.ContactName);
             contact_Phone = (TextView) itemView.findViewById(R.id.ContactPhone);
+            contactImage = (ImageView) itemView.findViewById(R.id.ContactPhoto);
             mView = itemView;
 
 
         }
+
 
         private ContactListViewHolder.ClickListener mClickListener;
 
@@ -281,7 +306,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         ) {
 
             @Override
-            protected void populateViewHolder(ContactListViewHolder viewHolder, ContactList model, final int position) {
+            protected void populateViewHolder(final ContactListViewHolder viewHolder, ContactList model, final int position) {
 
                 viewHolder.contact_Name.setText(model.getName());
                 viewHolder.contact_Phone.setText(model.getPhone());
@@ -294,6 +319,29 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                         Toast.makeText(getActivity(), "Position: " + position + " Key: " + key, Toast.LENGTH_SHORT).show();
                     }
                 });
+
+
+                if(model.getPhotoUrl()!=null){
+                    new Picasso.Builder(getContext())
+                            .downloader(new OkHttpDownloader(getContext(), Integer.MAX_VALUE))
+                            .build()
+                            .load(model.getPhotoUrl())
+                            .placeholder(R.drawable.ic_contact_photo)
+                            .transform(new CircleTransform())
+                            .into(viewHolder.contactImage);
+                    /*Picasso.with(getContext())
+                            .load(model.getPhotoUrl())
+                            .transform(new CircleTransform())
+                            .into(viewHolder.contactImage);*/
+
+                }
+                else{
+                    Picasso.with(getContext())
+                            .load(R.drawable.ic_contact_photo)
+                            .transform(new CircleTransform())
+                            .into(viewHolder.contactImage);
+                }
+
             }
 
 
@@ -302,6 +350,23 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         firebaseRecyclerAdapter.notifyDataSetChanged();
         mContactList.setAdapter(firebaseRecyclerAdapter);
         //set adapter for recycler view
+    }
+    /**
+     * Set RecyclerView's LayoutManager
+     */
+    public void setRecyclerViewLayoutManager(RecyclerView recyclerView) {
+        int scrollPosition = 0;
+
+        // If a layout manager has already been set, get current scroll position.
+        if (recyclerView.getLayoutManager() != null) {
+            scrollPosition =
+                    ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstCompletelyVisibleItemPosition();
+        }
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
+
+        recyclerView.setLayoutManager(linearLayoutManager);
+        recyclerView.scrollToPosition(scrollPosition);
     }
     }
 

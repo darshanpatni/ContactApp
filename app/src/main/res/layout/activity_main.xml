@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_margin="@dimen/fab_margin"
+
             app:srcCompat="@drawable/ic_explore" />
 
         <android.support.design.widget.FloatingActionButton
@@ -46,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
-            app:srcCompat="@drawable/add" />
+            app:srcCompat="@drawable/ic_add" />
     </FrameLayout>
 
     <android.support.design.widget.NavigationView

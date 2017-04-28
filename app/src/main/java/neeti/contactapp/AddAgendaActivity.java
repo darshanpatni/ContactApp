@@ -152,7 +152,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 selectedPlace = place.getName().toString();
                 selectedPlaceAdd = place.getAddress().toString();
 
-
                 LatLng selectedPlaceLatLng = place.getLatLng();
 
                 selectLatitude = selectedPlaceLatLng.latitude;

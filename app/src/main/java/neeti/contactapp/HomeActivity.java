@@ -56,6 +56,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
+import java.net.URL;
 
 import layout.AgendaFragment;
 
@@ -163,6 +164,14 @@ public class HomeActivity extends AppCompatActivity
 
                 Picasso.with(this)
                         .load(photoUrl)
+                        .transform(new CircleTransform())
+                        .into(dPhoto);
+            }
+
+            else{
+                Picasso.with(this)
+                        .load(R.drawable.ic_default_photo)
+                        .transform(new CircleTransform())
                         .into(dPhoto);
             }
 
@@ -390,28 +399,7 @@ public class HomeActivity extends AppCompatActivity
                                     }
                                     else{
 
-                                        //Import Contact Photo
 
-                                        StorageReference filepath = mStorageRef.child("users/"+user.getUid()+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
-                                        filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-
-
-                                            @Override
-                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-
-                                                // System.out.println(photoUri.toString()); //debug point
-
-                                               /* downloadUrl = taskSnapshot.getDownloadUrl();
-                                                rDatabase.child(contactId.toString()).child("photoUrl").setValue(downloadUrl.toString());
-*/
-
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
 
                                         //Import Contact Email ID if Any
                                         assert emailCursor != null;
@@ -448,6 +436,29 @@ public class HomeActivity extends AppCompatActivity
                                             {
                                                 case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
                                                     rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
+                                                    //Import Contact Photo
+
+                                                    StorageReference filepath = mStorageRef.child("users/"+user.getUid()+"/"+phoneNo+"/contactPhoto");
+                                                    filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+
+
+                                                        @Override
+                                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                                                            // System.out.println(photoUri.toString()); //debug point
+                                                            @SuppressWarnings("VisibleForTests")
+                                                           String downloadUrl =  taskSnapshot.getDownloadUrl().toString();
+                                               /* downloadUrl = taskSnapshot.getDownloadUrl();*/
+                                                rDatabase.child(contactId.toString()).child("photoUrl").setValue(downloadUrl);
+
+
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+
+                                                        }
+                                                    });
                                                     break;
                                                 case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
                                                     rDatabase.child(contactId.toString()).child("phoneHome").setValue(phoneNo);
