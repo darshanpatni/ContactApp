@@ -2,18 +2,26 @@ package layout;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.TypedValue;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,8 +35,13 @@ import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import neeti.contactapp.AgendaList;
 import neeti.contactapp.ContactList;
+import neeti.contactapp.HomeActivity;
 import neeti.contactapp.R;
 
 /**
@@ -60,6 +73,26 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
     private StorageReference mStorageRef;
     FirebaseUser user;
     FirebaseRecyclerAdapter<AgendaList, AgendaFragment.AgendaListViewHolder> firebaseRecyclerAdapter;
+
+    Menu menu;
+
+    private HashMap<Integer, String> selectedAgenda = new HashMap<Integer, String>();
+
+    List<String> selectedPos = new ArrayList<String>();
+
+    List<String> selectedA = new ArrayList<String>();
+
+    String city = null;
+
+    AlertDialog deleteDialog;
+
+    Boolean ac = false;
+
+    TextView textview[] = new TextView[9999];
+
+    View deleteView;
+
+    ViewGroup parent;
 
     ProgressDialog ringProgressDialog;
     String searchQuery = "";
@@ -190,22 +223,27 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         View mView;
         TextView agenda_title;
         TextView agenda_date;
+        RelativeLayout relativeLayout;
 
         public AgendaListViewHolder(View itemView) {
             super(itemView);
             agenda_title = (TextView) itemView.findViewById(R.id.agendaTitle);
             agenda_date = (TextView) itemView.findViewById(R.id.agendaDate);
+            relativeLayout = (RelativeLayout) itemView.findViewById(R.id.relativeLayout);
             mView = itemView;
         }
 
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater) {
 
         super.onCreateOptionsMenu(menu,inflater);
 
-        inflater.inflate(R.menu.fragment_search, menu);
+        this.menu = menu;
+
+        inflater.inflate(R.menu.agenda_fragment_menu, menu);
+        menu.setGroupVisible(R.id.search_group, true);
         MenuItem item = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) item.getActionView();
         //MenuItemCompat.setShowAsAction(item, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
@@ -217,6 +255,143 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         super.onCreateOptionsMenu(menu, inflater);
 
         super.onCreateOptionsMenu(menu, inflater);
+        MenuItem itemClose = menu.findItem(R.id.action_close);
+
+        itemClose.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+
+                selectedPos.clear();
+
+                selectedAgenda.keySet().clear();
+
+
+                selectedA.clear();
+
+                menu.setGroupVisible(R.id.main_menu_group, false);
+
+                menu.setGroupVisible(R.id.search_group, true);
+
+                ((HomeActivity) getActivity()).setActionBarTitle("Home");
+                ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#37474F")));
+
+                ac = false;
+
+                for(int i = 0; i < selectedA.size(); i++){
+                    ((ViewGroup)textview[i].getParent()).removeView(textview[i]);
+                }
+                selectedA.clear();
+
+                firebaseRecyclerAdapter.notifyDataSetChanged();
+                mAgendaList.setAdapter(firebaseRecyclerAdapter);
+                return false;
+            }
+        });
+
+
+        final MenuItem itemDelete = menu.findItem(R.id.action_delete);
+
+        itemDelete.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+
+                AlertDialog.Builder nBuilder = new AlertDialog.Builder(getActivity());
+                if(deleteView!=null) {
+                    parent = (ViewGroup) deleteView.getParent();
+                }
+                if(parent!=null) {
+                    parent.removeView(deleteView);
+                }
+                try {
+                    deleteView = getActivity().getLayoutInflater().inflate(R.layout.delete_agenda_dialog, null);
+
+                } catch (InflateException e) {
+                }
+                final LinearLayout linearLayout = (LinearLayout) deleteView.findViewById(R.id.selectedList);
+
+                //List<TextView> textView = new ArrayList<TextView>();
+
+                final TextView textview[] = new TextView[9999];
+
+                if(selectedA.size()>0){
+                    for (int i = 0;i < selectedA.size();i++){
+                        textview[i] = new TextView(getContext());
+                        textview[i].setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT));
+                        textview[i].setText(selectedA.get(i));
+                        linearLayout.addView(textview[i]);
+                    }
+                }
+
+                Button deleteBtn = (Button) deleteView.findViewById(R.id.action_delete);
+
+                deleteBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        for(int i = 0; i < selectedPos.size(); i++){
+                            String position = selectedPos.get(i);
+                            String key = selectedAgenda.get(Integer.parseInt(position));
+                            rDatabase.getRef().child(key).removeValue();
+                        }
+                        menu.setGroupVisible(R.id.main_menu_group, false);
+
+                        menu.setGroupVisible(R.id.search_group, true);
+
+                        ((HomeActivity) getActivity()).setActionBarTitle("Home");
+                        ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#37474F")));
+
+
+                        ac = false;
+                        firebaseRecyclerAdapter.notifyDataSetChanged();
+                        mAgendaList.setAdapter(firebaseRecyclerAdapter);
+                        selectedPos.clear();
+                        selectedAgenda.clear();
+                        linearLayout.invalidate();
+                        for(int i = 0; i < selectedA.size(); i++){
+                            ((ViewGroup)textview[i].getParent()).removeView(textview[i]);
+                        }
+                        selectedA.clear();
+                        deleteDialog.dismiss();
+                        deleteView.destroyDrawingCache();
+                    }
+                });
+
+                Button cancelBtn = (Button) deleteView.findViewById(R.id.cancel_action);
+
+                cancelBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        menu.setGroupVisible(R.id.main_menu_group, false);
+
+                        menu.setGroupVisible(R.id.search_group, true);
+
+                        ((HomeActivity) getActivity()).setActionBarTitle("Home");
+                        ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#37474F")));
+
+
+                        ac = false;
+                        firebaseRecyclerAdapter.notifyDataSetChanged();
+                        mAgendaList.setAdapter(firebaseRecyclerAdapter);
+                        selectedPos.clear();
+                        selectedAgenda.clear();
+                        linearLayout.invalidate();
+                        for(int i = 0; i < selectedA.size(); i++){
+                            ((ViewGroup)textview[i].getParent()).removeView(textview[i]);
+                        }
+                        selectedA.clear();
+                        deleteDialog.dismiss();
+                        deleteView.destroyDrawingCache();
+                    }
+                });
+                nBuilder.setView(deleteView);
+                deleteDialog = nBuilder.create();
+                deleteDialog.show();
+                return  false;
+            }
+        });
+
+
+
     }
 
     public void displayRecyclerView(Query query){
@@ -230,10 +405,20 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         ) {
 
             @Override
-            protected void populateViewHolder(AgendaListViewHolder viewHolder, AgendaList model, final int position) {
+            protected void populateViewHolder(final AgendaListViewHolder viewHolder, final AgendaList model, final int position) {
 
                 viewHolder.agenda_title.setText(model.getTitle());
                 viewHolder.agenda_date.setText(model.getDate());
+
+                TypedValue outValue = new TypedValue();
+                getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                viewHolder.relativeLayout.setBackgroundResource(outValue.resourceId);
+
+                if(selectedPos.contains(String.valueOf(position))){
+                    viewHolder.relativeLayout.setBackgroundColor(getResources().getColor(R.color.lightCyan));
+
+                }
+
 
                 viewHolder.mView.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -241,7 +426,64 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
 
                         String key = firebaseRecyclerAdapter.getRef(position).getKey();
                         Toast.makeText(getActivity(),  key, Toast.LENGTH_SHORT).show();
+
+                        if(ac){
+                            if(selectedPos.contains(String.valueOf(position))){
+                                //viewHolder.relativeLayout.setBackgroundColor(getResources().getColor(R.color.colorRed));
+                                selectedPos.remove(String.valueOf(position));
+                                selectedAgenda.remove(position);
+                                selectedA.remove(model.getTitle());
+                                TypedValue outValue = new TypedValue();
+                                getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                                viewHolder.relativeLayout.setBackgroundResource(outValue.resourceId);
+
+                                ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
+                                //getActivity().setTitle(selectedPos.size()+" items selected.");
+
+
+                                if(selectedPos.size()==0){
+                                    menu.setGroupVisible(R.id.main_menu_group, false);
+                                    menu.setGroupVisible(R.id.search_group, true);
+                                    ((HomeActivity) getActivity()).setActionBarTitle("Home");
+                                    ac=false;
+                                    ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#37474F")));
+
+
+                                }
+                            }
+                            else {
+                                selectedAgenda.put(position, firebaseRecyclerAdapter.getRef(position).getKey());
+
+                                selectedA.add(model.getTitle());
+                                selectedPos.add(String.valueOf(position));
+                                viewHolder.relativeLayout.setBackgroundColor(getResources().getColor(R.color.lightCyan));
+
+                                ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
+
+                                //getActivity().setTitle(selectedPos.size()+" items selected.");37474F
+                            }
+                        }
                     }
+                });
+
+                viewHolder.mView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        ac = true;
+                        //viewHolder.makeCheckBoxVisible(true);
+                        selectedAgenda.put(position, firebaseRecyclerAdapter.getRef(position).getKey());
+                        selectedPos.add(String.valueOf(position));
+                        selectedA.add(model.getTitle());
+
+                        viewHolder.relativeLayout.setBackgroundColor(getResources().getColor(R.color.lightCyan));
+                        menu.setGroupVisible(R.id.main_menu_group, true);
+                        menu.setGroupVisible(R.id.search_group,false);
+                        ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
+                        ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#FFC300")));
+                        //getActivity().setTitle(selectedPos.size()+" items selected.");
+                        return true;
+                    }
+
                 });
 
             }

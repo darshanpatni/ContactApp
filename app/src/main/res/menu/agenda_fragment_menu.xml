@@ -16,18 +16,11 @@
 
         <item
             android:id="@+id/action_delete"
-        android:title="@string/app_name"
-        android:icon="@drawable/ic_action_delete"
-        ContactApp:showAsAction="always"
-        android:visible="false"
-        />
-    <item android:id="@+id/action_assign_location"
-        android:title="@string/app_name"
-        android:icon="@drawable/ic_action_assign_location"
-        android:titleCondensed="Assign Location"
-        android:visible="false"
-        ContactApp:showAsAction="always"
-        />
+            android:title="@string/app_name"
+            android:icon="@drawable/ic_action_delete"
+            ContactApp:showAsAction="always"
+            android:visible="false"
+            />
         <item android:id="@+id/action_close"
             android:title="@string/app_name"
             android:icon="@drawable/ic_action_close"

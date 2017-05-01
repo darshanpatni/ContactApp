@@ -14,6 +14,11 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.craft.libraries.firebaseuiaddon.FirebaseSpinnerAdapter;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -31,6 +36,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import layout.ContactFragment;
 import neeti.contactapp.MultiSelectionSpinner;
@@ -57,6 +66,8 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     EditText title;
     EditText description;
     EditText datePick;
+
+    String city;
 
     private HashMap<String, String> hashMapContact = new HashMap<String, String>();
 
@@ -157,6 +168,38 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 selectLatitude = selectedPlaceLatLng.latitude;
                 selectLongitude = selectedPlaceLatLng.longitude;
 
+                String link = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+selectLatitude+","+selectLongitude+"&sensor=true";
+                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+
+                StringRequest stringRequest = new StringRequest(com.android.volley.Request.Method.GET, link,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+                                    JSONArray jObj = new JSONObject(response).getJSONArray("results").getJSONObject(0).getJSONArray("address_components");
+
+                                    for (int i = 0; i < jObj.length(); i++) {
+                                        String componentName = new JSONObject(jObj.getString(i)).getJSONArray("types").getString(0);
+                                        if (componentName.equals("locality") || componentName.equals("administrative_area_level_2")) {
+                                            city = new JSONObject(jObj.getString(i)).getString("long_name");
+                                        }
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        int x = 1;
+                    }
+                });
+
+                queue.add(stringRequest);
+
+
             }
 
             @Override
@@ -240,7 +283,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 newAgenda.child("title").setValue(agendaTitle);
                 newAgenda.child("lowTitle").setValue(agendaTitle.toLowerCase());
                 newAgenda.child("description").setValue(agendaDescription);
-
+                newAgenda.child("city").setValue(city);
                 List contactNames = multiSelectionSpinner.getSelectedStrings();
 
 

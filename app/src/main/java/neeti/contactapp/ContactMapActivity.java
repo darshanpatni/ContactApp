@@ -178,10 +178,14 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
                 GetLocationDownloadTask getLocation = new GetLocationDownloadTask();
 
                 getLocation.execute(link);
+
+
             }
 
         }
     }
+
+
 
     @Override
     public void onBackPressed() {
@@ -235,6 +239,8 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
                     double lat = ((JSONArray) locationObject.get("results")).getJSONObject(0)
                             .getJSONObject("geometry").getJSONObject("location")
                             .getDouble("lat");
+
+
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 10.0f));
                 } catch (JSONException e) {
                     e.printStackTrace();

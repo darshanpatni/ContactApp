@@ -8,8 +8,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.location.Address;
+import android.location.Geocoder;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
@@ -35,11 +38,17 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -54,14 +63,24 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.okhttp.Request;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
@@ -91,6 +110,9 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
     String selectedPlace = null;
     String selectedPlaceAdd = null;
+
+    String city = "";
+
     double selectLatitude;
     double selectLongitude;
 
@@ -164,6 +186,39 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 selectLongitude = selectedPlaceLatLng.longitude;
 
 
+
+                String link = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+selectLatitude+","+selectLongitude+"&sensor=true";
+                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+
+                StringRequest stringRequest = new StringRequest(com.android.volley.Request.Method.GET, link,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+                                    JSONArray jObj = new JSONObject(response).getJSONArray("results").getJSONObject(0).getJSONArray("address_components");
+
+                                    for (int i = 0; i < jObj.length(); i++) {
+                                        String componentName = new JSONObject(jObj.getString(i)).getJSONArray("types").getString(0);
+                                        if (componentName.equals("locality") || componentName.equals("administrative_area_level_2")) {
+                                             city = new JSONObject(jObj.getString(i)).getString("long_name");
+                                        }
+                                    }
+
+
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        int x = 1;
+                    }
+                });
+
+                queue.add(stringRequest);
+                //GetLocationDownloadTask getLocation = new GetLocationDownloadTask();
+                //getLocation.execute(link);
             }
 
             @Override
@@ -253,6 +308,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                     newContact.child("selectedPlaceAdd").setValue(selectedPlaceAdd);
                     newContact.child("selectLatitude").setValue(selectLatitude);
                     newContact.child("selectLongitude").setValue(selectLongitude);
+                    newContact.child("city").setValue(city);
                 }
                 if (contactSpinner.getSelectedItem()!=null){
                     newContact.child("reference").setValue(contactSpinner.getSelectedItem().toString());
@@ -405,4 +461,5 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         return strMyImagePath;
 
     }*/
+
 }
