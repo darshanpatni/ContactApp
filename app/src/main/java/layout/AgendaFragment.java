@@ -266,7 +266,6 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
                 selectedAgenda.keySet().clear();
 
 
-                selectedA.clear();
 
                 menu.setGroupVisible(R.id.main_menu_group, false);
 
@@ -278,7 +277,9 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
                 ac = false;
 
                 for(int i = 0; i < selectedA.size(); i++){
-                    ((ViewGroup)textview[i].getParent()).removeView(textview[i]);
+                    if(textview[i]!=null) {
+                        ((ViewGroup) textview[i].getParent()).removeView(textview[i]);
+                    }
                 }
                 selectedA.clear();
 

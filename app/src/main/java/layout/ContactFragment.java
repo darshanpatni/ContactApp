@@ -120,6 +120,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     TextView textview[] = new TextView[9999];
 
+    LinearLayout linearLayout;
 
     private OnFragmentInteractionListener mListener;
 
@@ -409,8 +410,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                 selectedContact.keySet().clear();
 
 
-                selectedCon.clear();
-
                 menu.setGroupVisible(R.id.main_menu_group, false);
 
                 menu.setGroupVisible(R.id.search_group, true);
@@ -419,8 +418,11 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                 ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#37474F")));
 
                 ac = false;
+
                 for(int i = 0; i < selectedCon.size(); i++){
-                    ((ViewGroup)textview[i].getParent()).removeView(textview[i]);
+                    if(textview[i]!=null) {
+                        ((ViewGroup) textview[i].getParent()).removeView(textview[i]);
+                    }
                 }
                 selectedCon.clear();
                 firebaseRecyclerAdapter.notifyDataSetChanged();
@@ -447,7 +449,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                 } catch (InflateException e) {
                 }
-                final LinearLayout linearLayout = (LinearLayout) deleteView.findViewById(R.id.selectedList);
+                linearLayout = (LinearLayout) deleteView.findViewById(R.id.selectedList);
 
                 //List<TextView> textView = new ArrayList<TextView>();
 
@@ -553,6 +555,11 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
 
                 if(selectedCon.size()>0){
+                    for(int i = 0; i < selectedCon.size(); i++){
+                        if(textview[i]!=null) {
+                            ((ViewGroup) textview[i].getParent()).removeView(textview[i]);
+                        }
+                    }
                     for (int i = 0;i < selectedCon.size();i++){
                         textview[i] = new TextView(getContext());
                         textview[i].setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
