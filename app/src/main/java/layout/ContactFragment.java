@@ -122,6 +122,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     LinearLayout linearLayout;
 
+    Boolean flag = true;
+
     private OnFragmentInteractionListener mListener;
 
     //Recycler Contact list variables
@@ -409,6 +411,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                 selectedContact.keySet().clear();
 
+                flag = false;
 
                 menu.setGroupVisible(R.id.main_menu_group, false);
 
@@ -534,6 +537,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
         MenuItem itemAssign = menu.findItem(R.id.action_assign_location);
 
+        flag =true;
         itemAssign.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -554,10 +558,16 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                 //List<TextView> textView = new ArrayList<TextView>();
 
 
+
                 if(selectedCon.size()>0){
                     for(int i = 0; i < selectedCon.size(); i++){
                         if(textview[i]!=null) {
-                            ((ViewGroup) textview[i].getParent()).removeView(textview[i]);
+                            try {
+                                ((ViewGroup) textview[i].getParent()).removeView(textview[i]);
+                            }
+                            catch (NullPointerException e){
+
+                            }
                         }
                     }
                     for (int i = 0;i < selectedCon.size();i++){
@@ -686,6 +696,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                         autocompleteFragment.onDestroy();
 
+                        flag = false;
                         ac = false;
                         firebaseRecyclerAdapter.notifyDataSetChanged();
                         mContactList.setAdapter(firebaseRecyclerAdapter);
