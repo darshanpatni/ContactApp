@@ -76,7 +76,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     String selectedPlaceAdd = null;
     double selectLatitude;
     double selectLongitude;
+    List contactNames;
 
+    String selectedContact;
     private double MyLat;
     private double MyLong;
 
@@ -86,6 +88,8 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         setContentView(R.layout.activity_add_agenda);
         datePick = (EditText) findViewById(R.id.datePicker);
         myCalendar = Calendar.getInstance();
+
+        selectedContact = getIntent().getStringExtra("selectedContact");
 
         title = (EditText) findViewById(R.id.agenda_title);
         description = (EditText) findViewById(R.id.agenda_description);
@@ -117,7 +121,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         user = FirebaseAuth.getInstance().getCurrentUser();
         rDatabase = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(user.getUid()).child(user.getDisplayName()).child("contacts");
-        Query query = rDatabase.orderByChild("name");
+        Query query = rDatabase.orderByChild("lowName");
 
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(user.getUid()).child(user.getDisplayName()).child("agenda");
@@ -135,6 +139,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                     String id = nameSnapshot.getKey();
                     hashMapContact.put(contactName, id);
                     names.add(contactName);
+                    if(contactName==selectedContact){
+                        multiSelectionSpinner.setSelection(names.indexOf(selectedContact));
+                    }
 
                 }
 
@@ -221,6 +228,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         }
 */
 
+
+
+
     }
 
     @Override
@@ -284,7 +294,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                 newAgenda.child("lowTitle").setValue(agendaTitle.toLowerCase());
                 newAgenda.child("description").setValue(agendaDescription);
                 newAgenda.child("city").setValue(city);
-                List contactNames = multiSelectionSpinner.getSelectedStrings();
+                contactNames = multiSelectionSpinner.getSelectedStrings();
 
 
                 for(int i=0; i<contactNames.size();i++){
@@ -300,6 +310,9 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                         DatabaseReference contact = newAgenda.child("contacts").push();
                         contact.child("contactName").setValue(contactName);
                         contact.child("contactID").setValue(contactID);
+                        DatabaseReference addInContact = rDatabase.child(contactID).child("agendaList").push();
+                        addInContact.child("title").setValue(agendaTitle);
+                        addInContact.child("agendaKey").setValue(newAgenda.getKey());
 
                     }
 

@@ -79,6 +79,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -96,6 +97,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     String Uid;
     MultiSelectionSpinner multiSelectionSpinner;
     Spinner contactSpinner;
+    HashMap <String, String>  ref = new HashMap<>();
     EditText contactName;
     EditText contactPhone;
     EditText contactEmail;
@@ -111,7 +113,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     String selectedPlace = null;
     String selectedPlaceAdd = null;
 
-    String city = "";
+    String city = null;
 
     double selectLatitude;
     double selectLongitude;
@@ -152,6 +154,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 names.add("NONE");
                 for (DataSnapshot nameSnapshot : dataSnapshot.getChildren()) {
                     String contactName = nameSnapshot.child("name").getValue(String.class);
+                    ref.put(contactName, nameSnapshot.getKey());
                     names.add(contactName);
                 }
                 ArrayAdapter<String> contactAdapter = new ArrayAdapter<String>(AddContactActivity.this, android.R.layout.simple_spinner_item, names);
@@ -309,9 +312,15 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                     newContact.child("selectLatitude").setValue(selectLatitude);
                     newContact.child("selectLongitude").setValue(selectLongitude);
                     newContact.child("city").setValue(city);
+                    newContact.child("lowCity").setValue(city.toLowerCase());
+
                 }
-                if (contactSpinner.getSelectedItem()!=null){
+                if (contactSpinner.getSelectedItem()!="NONE"){
                     newContact.child("reference").setValue(contactSpinner.getSelectedItem().toString());
+                    newContact.child("referenceKey").setValue(ref.get(contactSpinner.getSelectedItem().toString()));
+                    //DatabaseReference refCon = rDatabase.child(ref.get(contactSpinner.getSelectedItem().toString())).child("referenceList").push();
+                    //refCon.child("refName").setValue(contactName.getText().toString());
+                   // refCon.child("key").setValue(newContact.getKey());
                 }
                 if (contactEmail.getText()!=null){
                     newContact.child("email").setValue(contactEmail.getText().toString());

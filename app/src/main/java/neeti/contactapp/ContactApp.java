@@ -2,6 +2,7 @@ package neeti.contactapp;
 
 import android.app.Application;
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.FirebaseDatabase;
 
 /**
@@ -12,6 +13,10 @@ public class ContactApp extends Application {
     @Override
     public void onCreate(){
         super.onCreate();
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        if(!FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        }
+        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        //FirebaseApp.initializeApp(this);
     }
 }

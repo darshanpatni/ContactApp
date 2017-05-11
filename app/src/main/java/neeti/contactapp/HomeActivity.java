@@ -96,7 +96,8 @@ public class HomeActivity extends AppCompatActivity
                 .requestEmail()
                 .build();
 
-
+        Intent intent = new Intent(HomeActivity.this, LocationService.class);
+        this.startService(intent);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -422,6 +423,7 @@ public class HomeActivity extends AppCompatActivity
 
                                         //Import Contact Name
 
+                                        rDatabase.child(contactId.toString()).child("city").setValue(null);
                                         rDatabase.child(contactId.toString()).child("name").setValue(cName);
                                         rDatabase.child(contactId.toString()).child("lowName").setValue(cName.toLowerCase());
 

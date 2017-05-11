@@ -2,6 +2,7 @@ package layout;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import neeti.contactapp.AgendaInfoActivity;
 import neeti.contactapp.AgendaList;
 import neeti.contactapp.ContactList;
 import neeti.contactapp.HomeActivity;
@@ -463,6 +465,12 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
 
                                 //getActivity().setTitle(selectedPos.size()+" items selected.");37474F
                             }
+
+                        }
+                        else {
+                            Intent targetIntent = new Intent(getContext(), AgendaInfoActivity.class);
+                            targetIntent.putExtra("key",firebaseRecyclerAdapter.getRef(position).getKey());
+                            startActivity(targetIntent);
                         }
                     }
                 });

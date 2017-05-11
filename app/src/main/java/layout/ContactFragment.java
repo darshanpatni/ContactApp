@@ -55,9 +55,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.okhttp.OkHttpClient;
@@ -76,8 +80,10 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import neeti.contactapp.CircleTransform;
+import neeti.contactapp.ContactInfoActivity;
 import neeti.contactapp.ContactList;
 import neeti.contactapp.HomeActivity;
+import neeti.contactapp.NotificationViewActivity;
 import neeti.contactapp.R;
 
 
@@ -126,6 +132,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     private OnFragmentInteractionListener mListener;
 
+    int c = 0;
+
     //Recycler Contact list variables
     private RecyclerView mContactList;
     FragmentManager mFragmentManager;
@@ -141,6 +149,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     FirebaseUser user;
     FirebaseRecyclerAdapter<ContactList, ContactListViewHolder> firebaseRecyclerAdapter;
     Query query = null;
+
+    String conKey;
 
     TextView phone;
     //Request Contact Constant
@@ -164,7 +174,12 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     Double selectLatitude;
     Double selectLongitude;
 
+    String refKey;
+
     private ActionMode acMode;
+
+    String agendaKey;
+    String key;
 
     Menu menu = null;
     private ActionMode.Callback modeCallBack = new ActionMode.Callback() {
@@ -232,7 +247,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         //mContactList.setHasFixedSize(true);
         mContactList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        FastScroller fastScroller = (FastScroller) rootView.findViewById(R.id.fastscroll);
         //sectionTitleIndicator = (SectionTitleIndicator) rootView.findViewById(R.id.fast_scroller_section_title_indicator);
         query = null;
         //initialize Firebase variables
@@ -252,7 +266,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
             if(mContactList.getLayoutManager()!=null){
                 //VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) rootView.findViewById(R.id.fast_scroller);
 
-                fastScroller.setRecyclerView(mContactList);
+
 
                 //fastScroller.setRecyclerView(mContactList);
                 //  fastScroller.setSectionIndicator(sectionTitleIndicator);
@@ -304,13 +318,121 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     @Override
     public boolean onQueryTextChange(String newText) {
         if(TextUtils.isEmpty(newText)){
-            searchQuery = "";
+            searchQuery = null;
             query = rDatabase.orderByChild("lowName");
 
         }
         else{
+
             searchQuery = newText.toLowerCase();
             query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+
+            query.addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    if (dataSnapshot.getValue()!=null){
+                        c = 1;
+                    }
+
+                    else {
+                        c = 0;
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+            if(c==0){
+                query = rDatabase.orderByChild("lowCity").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+
+                query.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        if (dataSnapshot.getValue()!=null){
+                            c = 1;
+                        }
+
+                        else {
+                            c = 0;
+                        }
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            if (c==0){
+                query = rDatabase.orderByChild("phone").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
+
+                query.addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        if (dataSnapshot.getValue()!=null){
+                            c = 1;
+                        }
+
+                        else {
+                            c = 0;
+                        }
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
         }
         firebaseRecyclerAdapter.notifyDataSetChanged();
         mContactList.setAdapter(firebaseRecyclerAdapter);
@@ -404,7 +526,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         MenuItem itemClose = menu.findItem(R.id.action_close);
 
         itemClose.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
+            @Override   
             public boolean onMenuItemClick(MenuItem item) {
 
                 selectedPos.clear();
@@ -475,7 +597,57 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                     public void onClick(View v) {
                         for(int i = 0; i < selectedPos.size(); i++){
                             String position = selectedPos.get(i);
-                            String key = selectedContact.get(Integer.parseInt(position));
+                            key = selectedContact.get(Integer.parseInt(position));
+
+
+
+
+                            /*Query referQuery = rDatabase.child(key);
+
+                            referQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    refKey = dataSnapshot.child("referenceKey").getValue(String.class);
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
+                            Query deleteRef = rDatabase.child(refKey).child("referenceList").orderByChild("key").equalTo(key);
+
+                            deleteRef.addChildEventListener(new ChildEventListener() {
+                                @Override
+                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                                    conKey = dataSnapshot.getKey();
+
+                                }
+
+                                @Override
+                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                                }
+
+                                @Override
+                                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                                }
+
+                                @Override
+                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
+                            rDatabase.getRef().child(refKey).child("referenceList").child(conKey).removeValue();*/
+
                             rDatabase.getRef().child(key).removeValue();
                         }
                         menu.setGroupVisible(R.id.main_menu_group, false);
@@ -487,6 +659,13 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
 
                         ac = false;
+                        query = rDatabase.orderByChild("lowName");
+
+                        ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
+
+                        ringProgressDialog.show();
+                        //initialize FirebaseRecyclerAdapter
+                        displayRecyclerView(query);
                         firebaseRecyclerAdapter.notifyDataSetChanged();
                         mContactList.setAdapter(firebaseRecyclerAdapter);
                         selectedPos.clear();
@@ -655,6 +834,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                             String position = selectedPos.get(i);
                             String key = selectedContact.get(Integer.parseInt(position));
                             rDatabase.getRef().child(key).child("city").setValue(city);
+                            rDatabase.getRef().child(key).child("lowCity").setValue(city.toLowerCase());
                             rDatabase.getRef().child(key).child("selectedPlace").setValue(selectedPlace);
                             rDatabase.getRef().child(key).child("selectedPlaceAdd").setValue(selectedPlaceAdd);
                             rDatabase.getRef().child(key).child("selectLatitude").setValue(selectLatitude);
@@ -791,6 +971,12 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                                 //getActivity().setTitle(selectedPos.size()+" items selected.");37474F
                             }
+                        }
+
+                        else{
+                            Intent targetIntent = new Intent(getContext(), ContactInfoActivity.class);
+                            targetIntent.putExtra("key",firebaseRecyclerAdapter.getRef(position).getKey());
+                            startActivity(targetIntent);
                         }
                     }
                 });

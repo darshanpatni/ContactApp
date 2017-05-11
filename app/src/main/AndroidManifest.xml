@@ -30,6 +30,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".LocationService"
+            android:process=":location_service" />
+
         <activity
             android:name=".HomeActivity"
             android:label="Home"
@@ -50,18 +55,21 @@
             android:name=".AddAgendaActivity"
             android:label="Add Agenda" />
 
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyA6lWI6upw5jLDvH7excw4HAGJsQchL71Q" />
 
-        <activity android:name=".ContactMapActivity"
+        <activity
+            android:name=".ContactMapActivity"
             android:label="Explore Contacts"
-            android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".AgendaMapActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".AgendaMapActivity"
             android:label="Explore Agenda"
-            android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".ContactInfoActivity"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ContactInfoActivity" />
+        <activity android:name=".NotificationViewActivity" />
+        <activity android:name=".AgendaInfoActivity"></activity>
     </application>
 
 </manifest>
