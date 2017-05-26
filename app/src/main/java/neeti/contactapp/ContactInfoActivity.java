@@ -3,10 +3,12 @@ package neeti.contactapp;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -37,6 +39,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static java.security.AccessController.getContext;
 
 public class ContactInfoActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -73,6 +77,7 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
     String contactReferal;
     String contactPhoto;
     String contactReferenceKey;
+    String contactAddress;
 
     Double lat, lng;
     LatLng latLng;
@@ -105,12 +110,16 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
     ImageButton smsBtn;
     ImageButton emailBtn;
 
+    FloatingActionButton editBtn;
+
     ImageView contactPic;
     ImageView backBtn;
+    String intent;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_info);
 
@@ -137,11 +146,14 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
         callBtn = (ImageButton) findViewById(R.id.call);
         smsBtn = (ImageButton) findViewById(R.id.message);
         emailBtn = (ImageButton) findViewById(R.id.email);
+        editBtn = (FloatingActionButton) findViewById(R.id.edit);
 
         getSupportActionBar().hide();
 
         user = FirebaseAuth.getInstance().getCurrentUser();
 
+
+        intent = getIntent().getStringExtra("intent");
         currentContact = getIntent().getStringExtra("key");
 
         agendaDatabase = FirebaseDatabase.getInstance().getReference()
@@ -239,6 +251,14 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
 
         expListView2.setAdapter(listAdapter2);
 
+
+        expListView2.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                setListViewHeight(parent, groupPosition);
+                return false;
+            }
+        });
         expListView2.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
@@ -265,6 +285,13 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
             }
         });
 
+        expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+                setListViewHeight(parent, groupPosition);
+                return false;
+            }
+        });
         expListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
@@ -278,6 +305,12 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
                     Intent intent = new Intent(ContactInfoActivity.this, AddAgendaActivity.class);
                     intent.putExtra("selectedContact", contactName);
                     startActivity(intent);
+                }
+                else{
+                    Intent openAgenda = new Intent(ContactInfoActivity.this, AgendaInfoActivity.class);
+                    openAgenda.putExtra("key", key);
+                    startActivity(openAgenda);
+
                 }
                 Toast.makeText(getApplicationContext(), "" + clickedChild + " Key: " + key + " currentContact: " + currentContact
                         , Toast.LENGTH_SHORT).show();
@@ -318,6 +351,28 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
                 Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
                 emailIntent.setData(Uri.parse("mailto:"+contactEmail));
                 startActivity(emailIntent);
+            }
+        });
+
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent targetIntent = new Intent(getApplicationContext(), EditContactActivity.class);
+                targetIntent.putExtra("key",currentContact);
+                targetIntent.putExtra("name", contactName);
+                targetIntent.putExtra("phone", contactPhone);
+                targetIntent.putExtra("email", contactEmail);
+
+                targetIntent.putExtra("company", contactCompany);
+
+                targetIntent.putExtra("photoUri", contactPhoto);
+
+                targetIntent.putExtra("lat", lat);
+                targetIntent.putExtra("lng", lng);
+                targetIntent.putExtra("address", contactAddress);
+
+
+                startActivity(targetIntent);
             }
         });
     }
@@ -444,11 +499,12 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
             public void onDataChange(DataSnapshot dataSnapshot) {
                 lat = dataSnapshot.child("selectLatitude").getValue(Double.class);
                 lng = dataSnapshot.child("selectLongitude").getValue(Double.class);
+                contactAddress = dataSnapshot.child("selectedPlaceAdd").getValue(String.class);
                 if(lat!=null && lng!=null) {
 
                     latLng = new LatLng(lat, lng);
                     mapLayout.setVisibility(View.VISIBLE);
-                    Toast.makeText(getApplicationContext(), lat.toString()+lng, Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getApplicationContext(), lat.toString()+lng, Toast.LENGTH_LONG).show();
 
                     marker = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng))
                             .title(contactName).snippet(contactPhone));
@@ -479,4 +535,51 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
             });
 
     }
-}
+
+    @Override
+    public void  onBackPressed(){
+        if (intent!=null){
+            Intent intentAct = new Intent(this,HomeActivity.class);
+            startActivity(intentAct);
+        }
+        else{
+            super.onBackPressed();
+        }
+    }
+
+    private void setListViewHeight(ExpandableListView listView,
+                                   int group) {
+        ExpandableListAdapter listAdapter = (ExpandableListAdapter) listView.getExpandableListAdapter();
+        int totalHeight = 0;
+        int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(),
+                View.MeasureSpec.EXACTLY);
+        for (int i = 0; i < listAdapter.getGroupCount(); i++) {
+            View groupItem = listAdapter.getGroupView(i, false, null, listView);
+            groupItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+
+            totalHeight += groupItem.getMeasuredHeight();
+
+            if (((listView.isGroupExpanded(i)) && (i != group))
+                    || ((!listView.isGroupExpanded(i)) && (i == group))) {
+                for (int j = 0; j < listAdapter.getChildrenCount(i); j++) {
+                    View listItem = listAdapter.getChildView(i, j, false, null,
+                            listView);
+                    listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+
+                    totalHeight += listItem.getMeasuredHeight();
+
+                }
+            }
+        }
+
+        ViewGroup.LayoutParams params = listView.getLayoutParams();
+        int height = totalHeight
+                + (listView.getDividerHeight() * (listAdapter.getGroupCount() - 1));
+        if (height < 10)
+            height = 200;
+        params.height = height;
+        listView.setLayoutParams(params);
+        listView.requestLayout();
+    }
+
+    }

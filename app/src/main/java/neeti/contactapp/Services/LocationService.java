@@ -1,4 +1,4 @@
-package neeti.contactapp;
+package neeti.contactapp.Services;
 
 /**
  * Created by Darshan on 04-05-2017.
@@ -49,6 +49,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Objects;
+
+import neeti.contactapp.LoginActivity;
+import neeti.contactapp.NotificationViewActivity;
+import neeti.contactapp.R;
 
 public class LocationService extends Service {
     public static final String BROADCAST_ACTION = "Hello World";

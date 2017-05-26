@@ -933,8 +933,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                     public void onClick(View view) {
 
 
-                        Toast.makeText(getActivity(), "Position: " + position + " Key: " + firebaseRecyclerAdapter.getRef(position).getKey()
-                , Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getActivity(), "Position: " + position + " Key: " + firebaseRecyclerAdapter.getRef(position).getKey()
+  //              , Toast.LENGTH_SHORT).show();
 
                         if(ac){
                             if(selectedPos.contains(String.valueOf(position))){
@@ -976,6 +976,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                         else{
                             Intent targetIntent = new Intent(getContext(), ContactInfoActivity.class);
                             targetIntent.putExtra("key",firebaseRecyclerAdapter.getRef(position).getKey());
+                            targetIntent.putExtra("intent", "ContactFragment");
                             startActivity(targetIntent);
                         }
                     }

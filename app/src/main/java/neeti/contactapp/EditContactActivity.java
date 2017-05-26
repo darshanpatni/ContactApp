@@ -1,26 +1,20 @@
 package neeti.contactapp;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
@@ -33,8 +27,9 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -48,7 +43,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.okhttp.Request;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -58,34 +52,56 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 
-import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+public class EditContactActivity extends AppCompatActivity {
 
-public class AddContactActivity extends AppCompatActivity implements MultiSelectionSpinner.OnMultipleItemsSelectedListener {
+
+    FirebaseUser user;
+    String conKey;
+    String currentContact;
+    private StorageReference mStorageRef;
+
+    private static final int GALLERY_INTENT = 2;
 
     int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
-    private DatabaseReference mDatabase;
-    private DatabaseReference rDatabase;
-    private StorageReference mStorageRef;
-    FirebaseUser user;
+
+    String refContactName;
+
+    String contactName;
+    String contactPhone;
+    String contactEmail;
+    String contactCompany;
+    String contactDomain;
+    String contactReferal;
+    String contactPhoto;
+    String contactAddress;
+    String contactReferenceKey;
+
     List<String> names;
+
+
+    Double lat, lng;
+    LatLng latLng;
+
+    Marker marker;
+
+    GoogleMap mMap;
+    HashMap markerMap = new HashMap();
+    HashMap markerMap1 = new HashMap();
 
     String Uid;
     MultiSelectionSpinner multiSelectionSpinner;
     Spinner contactSpinner;
     HashMap <String, String>  ref = new HashMap<>();
-    EditText contactName;
-    EditText contactPhone;
-    EditText contactEmail;
-    EditText contactCompany;
-    ImageButton call;
-    //permission constants
-    private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
-    private static final int GALLERY_INTENT = 2;
 
-    Button selectImage;
-    ImageView contactPhoto;
+    ImageView contactPhotoImg;
+
+    EditText contactNameEdit;
+    EditText contactPhoneEdit;
+    EditText contactEmailEdit;
+    EditText contactCompanyEdit;
+    FloatingActionButton selectImg;
+
 
     String selectedPlace = null;
     String selectedPlaceAdd = null;
@@ -98,31 +114,74 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     private double MyLat;
     private double MyLong;
 
-    FloatingActionButton fab;
     Uri uri = null;//To store image Uri
     String uriUpload;
+
+    private DatabaseReference contactDatabase;
+
+
+    private HashMap<Marker, String> hashMapContact = new HashMap<Marker, String>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_contact);
-        contactName = (EditText) findViewById(R.id.contact_name);
-        contactPhone = (EditText) findViewById(R.id.contact_phone);
-        contactCompany = (EditText) findViewById(R.id.contact_company);
-        contactEmail = (EditText) findViewById(R.id.contact_email);
+        setContentView(R.layout.activity_edit_contact);
+
+        contactNameEdit = (EditText) findViewById(R.id.contact_name);
+        contactPhoneEdit = (EditText) findViewById(R.id.contact_phone);
+        contactCompanyEdit = (EditText) findViewById(R.id.contact_company);
+        contactEmailEdit = (EditText) findViewById(R.id.contact_email);
         contactSpinner = (Spinner) findViewById(R.id.mySpinner);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
+        contactPhotoImg = (ImageView) findViewById(R.id.contactPhoto);
+        contactSpinner = (Spinner) findViewById(R.id.mySpinner);
+
+
         user = FirebaseAuth.getInstance().getCurrentUser();
-        rDatabase = FirebaseDatabase.getInstance().getReference().child("users")
-                .child(user.getUid()).child(user.getDisplayName()).child("contacts");
-        Query query = rDatabase.orderByChild("lowName");
+
+        currentContact = getIntent().getStringExtra("key");
+        contactName = getIntent().getStringExtra("name");
+        contactEmail = getIntent().getStringExtra("email");
+        contactPhone = getIntent().getStringExtra("phone");
+        contactCompany = getIntent().getStringExtra("company");
+        contactPhoto = getIntent().getStringExtra("photoUri");
+        String latitude = getIntent().getStringExtra("lat");
+        String longitude = getIntent().getStringExtra("lng");
+
+        if(latitude!=null && longitude!=null){
+            lat = Double.valueOf(latitude);
+            lng = Double.valueOf(longitude);
+            contactAddress = getIntent().getStringExtra("address");
+        }
+
+        contactNameEdit.setText(contactName);
+        contactPhoneEdit.setText(contactPhone);
+        contactEmailEdit.setText(contactEmail);
+
+        selectImg = (FloatingActionButton) findViewById(R.id.fab);
 
         mStorageRef = FirebaseStorage.getInstance().getReference();//Storage Reference variable
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
-                .child(user.getUid()).child(user.getDisplayName()).child("contacts");
 
-        // multiSelectionSpinner = (MultiSelectionSpinner) findViewById(R.id.mySpinner);
+        if(contactCompany!=null){
+            contactCompanyEdit.setText(contactCompany);
+        }
+
+        if (contactPhoto != null) {
+            Picasso.with(getApplicationContext())
+                    .load(contactPhoto)
+                    .transform(new CircleTransform())
+                    .into(contactPhotoImg);
+        } else {
+            Picasso.with(getApplicationContext())
+                    .load(R.drawable.ic_default_photo)
+                    .transform(new CircleTransform())
+                    .into(contactPhotoImg);
+        }
+
+        DatabaseReference rDatabase = FirebaseDatabase.getInstance().getReference().child("users")
+                .child(user.getUid()).child(user.getDisplayName()).child("contacts");
+        Query query = rDatabase.orderByChild("lowName");
 
         query.addValueEventListener(new ValueEventListener() {
             @Override
@@ -134,7 +193,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                     ref.put(contactName, nameSnapshot.getKey());
                     names.add(contactName);
                 }
-                ArrayAdapter<String> contactAdapter = new ArrayAdapter<String>(AddContactActivity.this, android.R.layout.simple_spinner_item, names);
+                ArrayAdapter<String> contactAdapter = new ArrayAdapter<String>(EditContactActivity.this, android.R.layout.simple_spinner_item, names);
                 contactAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 contactSpinner.setAdapter(contactAdapter);
             }
@@ -145,8 +204,11 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
             }
         });
 
+
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
+        autocompleteFragment.setText(contactAddress);
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -178,7 +240,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                                     for (int i = 0; i < jObj.length(); i++) {
                                         String componentName = new JSONObject(jObj.getString(i)).getJSONArray("types").getString(0);
                                         if (componentName.equals("locality") || componentName.equals("administrative_area_level_2")) {
-                                             city = new JSONObject(jObj.getString(i)).getString("long_name");
+                                            city = new JSONObject(jObj.getString(i)).getString("long_name");
                                         }
                                     }
 
@@ -206,7 +268,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
             }
         });
 
-        fab.setOnClickListener(new View.OnClickListener() {
+        selectImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_PICK);
@@ -215,15 +277,7 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
             }
         });
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            //do your check here
-            mayRequestExternalStorage();
-        }
-
-
     }
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
@@ -242,20 +296,19 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
         if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK){
 
-            contactPhoto = (ImageView) findViewById(R.id.contactPhoto);
+            contactPhotoImg = (ImageView) findViewById(R.id.contactPhoto);
             uri = data.getData();
 
             Picasso.with(this)
                     .load(uri)
                     .transform(new CircleTransform())
 
-                    .into(contactPhoto);
+                    .into(contactPhotoImg);
         }
 //.resize(60,60)
 // .centerCrop()
 
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -263,6 +316,10 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        contactDatabase = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts").child(currentContact);;
+        contactDatabase.keepSynced(true);
 
         // Creates a new Intent to insert a contact
 
@@ -275,44 +332,40 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         if (id == R.id.action_save) {
 
 
-            if (TextUtils.isEmpty(contactName.getText())) {
+            if (TextUtils.isEmpty(contactNameEdit.getText())) {
                 Toast.makeText(getApplication(), "Please enter contact name.", Toast.LENGTH_SHORT).show();
             }
-            else if (TextUtils.isEmpty(contactPhone.getText())) {
+            else if (TextUtils.isEmpty(contactPhoneEdit.getText())) {
                 Toast.makeText(getApplication(), "Please enter phone no", Toast.LENGTH_SHORT).show();
             }
 
 
             else {
-                final DatabaseReference newContact = mDatabase.push();
 
-                newContact.child("name").setValue(contactName.getText().toString());
-                intent.putExtra(ContactsContract.Intents.Insert.NAME, contactName.getText());
-                newContact.child("lowName").setValue(contactName.getText().toString().toLowerCase());
-                newContact.child("phone").setValue(contactPhone.getText().toString());
-                intent.putExtra(ContactsContract.Intents.Insert.PHONE, contactPhone.getText());
+                contactDatabase.child("name").setValue(contactNameEdit.getText().toString());
+                contactDatabase.child("lowName").setValue(contactNameEdit.getText().toString().toLowerCase());
+                contactDatabase.child("phone").setValue(contactPhoneEdit.getText().toString());
                 if (selectedPlace!=null){
-                    newContact.child("selectedPlace").setValue(selectedPlace);
-                    newContact.child("selectedPlaceAdd").setValue(selectedPlaceAdd);
-                    newContact.child("selectLatitude").setValue(selectLatitude);
-                    newContact.child("selectLongitude").setValue(selectLongitude);
-                    newContact.child("city").setValue(city);
-                    newContact.child("lowCity").setValue(city.toLowerCase());
+                    contactDatabase.child("selectedPlace").setValue(selectedPlace);
+                    contactDatabase.child("selectedPlaceAdd").setValue(selectedPlaceAdd);
+                    contactDatabase.child("selectLatitude").setValue(selectLatitude);
+                    contactDatabase.child("selectLongitude").setValue(selectLongitude);
+                    contactDatabase.child("city").setValue(city);
+                    contactDatabase.child("lowCity").setValue(city.toLowerCase());
 
                 }
                 if (contactSpinner.getSelectedItem()!="NONE"){
-                    newContact.child("reference").setValue(contactSpinner.getSelectedItem().toString());
-                    newContact.child("referenceKey").setValue(ref.get(contactSpinner.getSelectedItem().toString()));
+                    contactDatabase.child("reference").setValue(contactSpinner.getSelectedItem().toString());
+                    contactDatabase.child("referenceKey").setValue(ref.get(contactSpinner.getSelectedItem().toString()));
                     //DatabaseReference refCon = rDatabase.child(ref.get(contactSpinner.getSelectedItem().toString())).child("referenceList").push();
                     //refCon.child("refName").setValue(contactName.getText().toString());
-                   // refCon.child("key").setValue(newContact.getKey());
+                    // refCon.child("key").setValue(newContact.getKey());
                 }
-                if (contactEmail.getText()!=null){
-                    newContact.child("email").setValue(contactEmail.getText().toString());
-                    intent.putExtra(ContactsContract.Intents.Insert.EMAIL, contactEmail.getText());
+                if (contactEmailEdit.getText()!=null && contactEmailEdit.getText().toString()!=contactEmail){
+                    contactDatabase.child("email").setValue(contactEmailEdit.getText().toString());
                 }
-                if (contactCompany.getText()!=null){
-                    newContact.child("company").setValue(contactCompany.getText().toString());
+                if (contactCompanyEdit.getText()!=null && contactCompanyEdit.getText().toString()!=contactCompany){
+                    contactDatabase.child("company").setValue(contactCompanyEdit.getText().toString());
                 }
 
                 user = FirebaseAuth.getInstance().getCurrentUser();
@@ -321,9 +374,9 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
                 //String newPath = decodeFile(uriPath);
 
-               // uri = Uri.parse(newPath);
+                // uri = Uri.parse(newPath);
                 //uri  = Uri.parse(uriUpload);
-                if(uri!=null){StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhone.getText().toString()+"/contactPhoto");
+                if(uri!=null){StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhoneEdit.getText().toString()+"/contactPhoto");
                     filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -331,22 +384,25 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                             // System.out.println(photoUri.toString());
                             @SuppressWarnings("VisibleForTests")
                             String downloadUrl = taskSnapshot.getDownloadUrl().toString();
-                            newContact.child("photoUrl").setValue(downloadUrl);
-                            Toast.makeText(AddContactActivity.this, "Upload Successful",
+                            contactDatabase.child("photoUrl").setValue(downloadUrl);
+                            Toast.makeText(EditContactActivity.this, "Upload Successful",
                                     Toast.LENGTH_LONG).show();
 
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(AddContactActivity.this, "Upload unsuccessful",
+                            Toast.makeText(EditContactActivity.this, "Upload unsuccessful",
                                     Toast.LENGTH_LONG).show();
                         }
                     });}
 
                 startActivity(intent);
-                Intent intentAct = new Intent(this,HomeActivity.class);
-                intentAct.putExtra("fragmentValue", 1); //for example
+                Intent intentAct = new Intent(this,ContactInfoActivity.class);
+                intentAct.putExtra("key", currentContact); //for example
+                String intentAc = "edit";
+                intentAct.putExtra("intent", intentAc);
+
                 startActivity(intentAct);
                 return true;
             }
@@ -355,105 +411,9 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     }
 
     @Override
-    public void onBackPressed() {
-
-        startActivity(new Intent(AddContactActivity.this, HomeActivity.class));
-        finish();
-    }
-
-    @Override
-    public void selectedIndices(List<Integer> indices) {
-
-    }
-
-    @Override
-    public void selectedStrings(List<String> strings) {
-
-    }
-
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
-    //Request permission to access External Storage (Required for API 23 or greater)
-    private boolean mayRequestExternalStorage() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
-        if (checkSelfPermission(READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        }
-        if (shouldShowRequestPermissionRationale(READ_EXTERNAL_STORAGE)) {
-            if (checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(AddContactActivity.this, "Permission Granted",
-                        Toast.LENGTH_LONG).show();
-                //File write logic here
-                return true;
-            }
-        } else {
-
-            requestPermissions(new String[]{READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
-        }
-        return false;
-    }
-
-    /*private String decodeFile(String path) {
-        String strMyImagePath = null;
-        Bitmap scaledBitmap = null;
-
-        try {
-            // Part 1: Decode image
-            Bitmap unscaledBitmap = ScalingUtilities.decodeFile(path, 800, 800, ScalingUtilities.ScalingLogic.CROP);
-
-            if (!(unscaledBitmap.getWidth() <= 800 && unscaledBitmap.getHeight() <= 800)) {
-                // Part 2: Scale image
-                scaledBitmap = ScalingUtilities.createScaledBitmap(unscaledBitmap, 800, 800, ScalingUtilities.ScalingLogic.CROP);
-            } else {
-                unscaledBitmap.recycle();
-                return path;
-            }
-
-            // Store to tmp file
-
-            String extr = Environment.getExternalStorageDirectory().toString();
-            File mFolder = new File(extr + "/myTmpDir");
-            if (!mFolder.exists()) {
-                mFolder.mkdir();
-            }
-
-            String s = "tmp.png";
-
-            File f = new File(mFolder.getAbsolutePath(), s);
-
-            strMyImagePath = f.getAbsolutePath();
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(f);
-                scaledBitmap.compress(Bitmap.CompressFormat.PNG, 70, fos);
-                fos.flush();
-                fos.close();
-            } catch (FileNotFoundException e) {
-
-                e.printStackTrace();
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-
-            scaledBitmap.recycle();
-        } catch (Throwable e) {
-        }
-
-        if (strMyImagePath == null) {
-            return path;
-        }
-        return strMyImagePath;
-
-    }*/
-
-
 }

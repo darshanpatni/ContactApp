@@ -32,7 +32,7 @@
         </activity>
 
         <service
-            android:name=".LocationService"
+            android:name=".Services.LocationService"
             android:process=":location_service" />
 
         <activity
@@ -69,7 +69,9 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".ContactInfoActivity" />
         <activity android:name=".NotificationViewActivity" />
-        <activity android:name=".AgendaInfoActivity"></activity>
+        <activity android:name=".AgendaInfoActivity" />
+        <activity android:name=".EditContactActivity" />
+        <activity android:name=".EditAgendaActivity"></activity>
     </application>
 
 </manifest>
