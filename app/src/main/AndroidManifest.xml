@@ -71,7 +71,11 @@
         <activity android:name=".NotificationViewActivity" />
         <activity android:name=".AgendaInfoActivity" />
         <activity android:name=".EditContactActivity" />
-        <activity android:name=".EditAgendaActivity"></activity>
+        <activity android:name=".EditAgendaActivity" />
+        <activity android:name=".EditUserInfo" />
+        <activity
+            android:name=".LoginActivity2"
+            android:label="@string/title_activity_login2"></activity>
     </application>
 
 </manifest>

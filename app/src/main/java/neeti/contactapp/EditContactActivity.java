@@ -148,6 +148,8 @@ public class EditContactActivity extends AppCompatActivity {
         String latitude = getIntent().getStringExtra("lat");
         String longitude = getIntent().getStringExtra("lng");
 
+        getSupportActionBar().setTitle("Edit: "+contactName);
+
         if(latitude!=null && longitude!=null){
             lat = Double.valueOf(latitude);
             lng = Double.valueOf(longitude);
@@ -208,7 +210,7 @@ public class EditContactActivity extends AppCompatActivity {
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
-        autocompleteFragment.setText(contactAddress);
+        /*autocompleteFragment.setText(contactAddress);
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -275,12 +277,12 @@ public class EditContactActivity extends AppCompatActivity {
                 intent.setType("image/*");
                 startActivityForResult(intent, GALLERY_INTENT);
             }
-        });
+        });*/
 
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+        /*if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 //Log.i(TAG, "Place: " + place.getName());
@@ -292,7 +294,7 @@ public class EditContactActivity extends AppCompatActivity {
             } else if (resultCode == RESULT_CANCELED) {
                 // The user canceled the operation.
             }
-        }
+        }*/
 
         if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK){
 
@@ -397,7 +399,7 @@ public class EditContactActivity extends AppCompatActivity {
                         }
                     });}
 
-                startActivity(intent);
+                //startActivity(intent);
                 Intent intentAct = new Intent(this,ContactInfoActivity.class);
                 intentAct.putExtra("key", currentContact); //for example
                 String intentAc = "edit";

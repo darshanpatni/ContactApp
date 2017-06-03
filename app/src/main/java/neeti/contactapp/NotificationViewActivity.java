@@ -118,7 +118,7 @@ public class NotificationViewActivity extends AppCompatActivity {
 
 
             @Override
-            protected void populateViewHolder(ContactListViewHolder viewHolder, final ContactList model, int position) {
+            protected void populateViewHolder(ContactListViewHolder viewHolder, final ContactList model, final int position) {
                 viewHolder.contact_Name.setText(model.getName());
                 viewHolder.contact_Phone.setText(model.getPhone());
 
@@ -138,6 +138,15 @@ public class NotificationViewActivity extends AppCompatActivity {
                             .into(viewHolder.contactImage);
                 }
 
+                viewHolder.mView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String key = firebaseRecyclerAdapter.getRef(position).getKey();
+                        Intent targetIntent = new Intent(NotificationViewActivity.this, ContactInfoActivity.class);
+                        targetIntent.putExtra("key", key);
+                        startActivity(targetIntent);
+                    }
+                });
                 viewHolder.callBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

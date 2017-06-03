@@ -25,6 +25,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -33,6 +35,7 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -129,6 +132,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     LinearLayout linearLayout;
 
     Boolean flag = true;
+
+    String search;
 
     private OnFragmentInteractionListener mListener;
 
@@ -322,117 +327,17 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
             query = rDatabase.orderByChild("lowName");
 
         }
-        else{
-
+        else if (search == "Name") {
             searchQuery = newText.toLowerCase();
-            query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
-
-            query.addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    if (dataSnapshot.getValue()!=null){
-                        c = 1;
-                    }
-
-                    else {
-                        c = 0;
-                    }
-                }
-
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                }
-
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-
-            if(c==0){
-                query = rDatabase.orderByChild("lowCity").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
-
-                query.addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        if (dataSnapshot.getValue()!=null){
-                            c = 1;
-                        }
-
-                        else {
-                            c = 0;
-                        }
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-            }
-
-            if (c==0){
-                query = rDatabase.orderByChild("phone").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
-
-                query.addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        if (dataSnapshot.getValue()!=null){
-                            c = 1;
-                        }
-
-                        else {
-                            c = 0;
-                        }
-                    }
-
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                    }
-
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-            }
+            query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+        }
+        else if (search == "City") {
+            searchQuery = newText.toLowerCase();
+            query = rDatabase.orderByChild("lowCity").startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+        }
+        else if (search == "Phone") {
+            searchQuery = newText.toLowerCase();
+            query = rDatabase.orderByChild("phone").startAt(searchQuery).endAt(searchQuery + "\uf8ff");
         }
         firebaseRecyclerAdapter.notifyDataSetChanged();
         mContactList.setAdapter(firebaseRecyclerAdapter);
@@ -511,7 +416,27 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
 
         inflater.inflate(R.menu.fragment_search, menu);
+        menu.setGroupVisible(R.id.sortAgenda, false);
         menu.setGroupVisible(R.id.search_group, true);
+        menu.setGroupVisible(R.id.searchSpinner, true);
+
+        final MenuItem searchType = menu.findItem(R.id.paraSpinner);
+        Spinner searchSpinner = (Spinner) MenuItemCompat.getActionView(searchType);
+        final String[] searchBy = new String[]{"Name","Phone", "City"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_dropdown_item_1line, searchBy);
+        searchSpinner.setAdapter(adapter);
+
+        searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                search = searchBy[position];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         MenuItem item = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) item.getActionView();
         //MenuItemCompat.setShowAsAction(item, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
@@ -1058,5 +983,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.scrollToPosition(scrollPosition);
     }
+
     }
 

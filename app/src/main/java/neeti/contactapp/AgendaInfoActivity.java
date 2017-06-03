@@ -1,12 +1,14 @@
 package neeti.contactapp;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,7 +41,7 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
     List<String> listDataHeader;
     HashMap<String, List<String>> listDataChild;
 
-    List<String> contactList;
+    ArrayList<String> contactList;
 
     HashMap<String, String> agendaMap = new HashMap<String, String>();
     HashMap<String, String> contactMap = new HashMap<String, String>();
@@ -58,12 +60,15 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
     String agendaDate;
     String contactName;
     String contactKey;
+    float rating;
 
     String currentAgenda;
 
     Double lat, lng;
     LatLng latLng;
-
+    String selectedPlace;
+    String selectedPlaceAdd;
+    String intent;
     Marker marker;
 
     GoogleMap mMap;
@@ -72,6 +77,10 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
     private HashMap<Marker, String> hashMapContact = new HashMap<Marker, String>();
 
     ImageView backBtn;
+    FloatingActionButton editBtn;
+    String backBtnFlag;
+    RatingBar ratingBar;
+    TextView ratingText;
 
     int i = 0;
     @Override
@@ -86,10 +95,26 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
         agenda_description = (TextView) findViewById(R.id.agenda_description);
         agenda_date = (TextView) findViewById(R.id.agenda_date);
         backBtn = (ImageView) findViewById(R.id.btn_back);
+        editBtn = (FloatingActionButton) findViewById(R.id.edit);
+        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
+        ratingText = (TextView) findViewById(R.id.ratingText);
+
+
 
         user = FirebaseAuth.getInstance().getCurrentUser();
 
+        intent = getIntent().getStringExtra("intent");
+
+        backBtnFlag = getIntent().getStringExtra("backBtnFlag");
         currentAgenda = getIntent().getStringExtra("key");
+        if (intent!=null){
+            Intent intent = new Intent(getApplicationContext(), AgendaInfoActivity.class);
+            intent.putExtra("key", currentAgenda);
+            intent.putExtra("backBtnFlag", "1");
+            startActivity(intent);
+            finish();
+        }
+
 
         agendaDatabase = FirebaseDatabase.getInstance().getReference()
                 .child("users").child(user.getUid()).child(user.getDisplayName()).child("agenda");
@@ -119,6 +144,15 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
 
                 agendaDescription = dataSnapshot.child("description").getValue(String.class);
                 agenda_description.setText(agendaDescription);
+
+                try{
+                    rating = dataSnapshot.child("rating").getValue(float.class);
+                    ratingBar.setRating(rating);
+                }
+                catch (NullPointerException e){
+
+                }
+
             }
 
             @Override
@@ -172,6 +206,27 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
         mapFragment.getMapAsync(this);
         prepareListData();
 
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent targetIntent = new Intent(getApplicationContext(), EditAgendaActivity.class);
+                targetIntent.putStringArrayListExtra("selectedContacts", contactList);
+
+                targetIntent.putExtra("title", agendaTitle);
+                targetIntent.putExtra("description", agendaDescription);
+                targetIntent.putExtra("date", agendaDate);
+
+                targetIntent.putExtra("lat", lat.toString());
+                targetIntent.putExtra("lng", lng.toString());
+                targetIntent.putExtra("place", selectedPlace);
+                targetIntent.putExtra("address", selectedPlaceAdd);
+                targetIntent.putExtra("key", currentAgenda);
+                targetIntent.putExtra("contactMap", contactMap);
+                targetIntent.putExtra("rating", ratingBar.getRating());
+                startActivity(targetIntent);
+            }
+        });
+
     }
 
     private void prepareListData() {
@@ -194,27 +249,30 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
                 //contactKey = dataSnapshot.child("contactID").getValue(String.class);
                 final String entryKey = dataSnapshot.getKey();
 
+                if (dataSnapshot.child("contactID").getValue(String.class) != null) {
 
-                contactDatabase.child(dataSnapshot.child("contactID").getValue(String.class))
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if(dataSnapshot.exists()) {
-                            contactName = dataSnapshot.child("name").getValue(String.class);
-                            contactKey = dataSnapshot.getKey();
-                            contactMap.put(contactName, contactKey);
-                            contacts.add(contactName);
-                        }
-                        else{
-                            agendaDatabase.child(currentAgenda).child("contacts").child(entryKey).removeValue();
-                        }
-                    }
+                    contactDatabase.child(dataSnapshot.child("contactID").getValue(String.class))
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        contactName = dataSnapshot.child("name").getValue(String.class);
+                                        contactKey = dataSnapshot.getKey();
+                                        contactMap.put(contactName, contactKey);
+                                        contacts.add(contactName);
+                                        contactList.add(contactName);
+                                    }
+                                    else if(intent==null) {
+                                        agendaDatabase.child(currentAgenda).child("contacts").child(entryKey).removeValue();
+                                    }
+                                }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
 
-                    }
-                });
+                                }
+                            });
+                }
             }
 
             @Override
@@ -239,7 +297,6 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
         });
 
 
-        contacts.add("+ Add New");
 
         listDataChild.put(listDataHeader.get(0), contacts);
     }
@@ -256,6 +313,9 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
             public void onDataChange(DataSnapshot dataSnapshot) {
                 lat = dataSnapshot.child("selectLatitude").getValue(Double.class);
                 lng = dataSnapshot.child("selectLongitude").getValue(Double.class);
+                selectedPlaceAdd = dataSnapshot.child("selectedPlaceAdd").getValue(String.class);
+                selectedPlace = dataSnapshot.child("selectedPlace").getValue(String.class);
+
                 if(lat!=null && lng!=null) {
 
                     latLng = new LatLng(lat, lng);
@@ -325,5 +385,16 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
         listView.setLayoutParams(params);
         listView.requestLayout();
 
+    }
+
+    @Override
+    public void  onBackPressed(){
+        if (backBtnFlag !=null){
+            Intent intentAct = new Intent(this,HomeActivity.class);
+            startActivity(intentAct);
+        }
+        else{
+            super.onBackPressed();
+        }
     }
     }

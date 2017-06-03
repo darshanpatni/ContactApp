@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,10 +21,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,6 +80,7 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
     private StorageReference mStorageRef;
     FirebaseUser user;
     FirebaseRecyclerAdapter<AgendaList, AgendaFragment.AgendaListViewHolder> firebaseRecyclerAdapter;
+    LinearLayoutManager linearLayoutManager;
 
     Menu menu;
 
@@ -138,7 +144,8 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         setHasOptionsMenu(true);
         //initialize Recycler view
         mAgendaList = (RecyclerView) rootView.findViewById(R.id.agenda_list);
-        mAgendaList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        linearLayoutManager = new LinearLayoutManager(getActivity());
+        mAgendaList.setLayoutManager(linearLayoutManager);
 
 
         //initialize Firebase variables
@@ -226,12 +233,14 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         TextView agenda_title;
         TextView agenda_date;
         RelativeLayout relativeLayout;
+        RatingBar ratingBar;
 
         public AgendaListViewHolder(View itemView) {
             super(itemView);
             agenda_title = (TextView) itemView.findViewById(R.id.agendaTitle);
             agenda_date = (TextView) itemView.findViewById(R.id.agendaDate);
             relativeLayout = (RelativeLayout) itemView.findViewById(R.id.relativeLayout);
+            ratingBar = (RatingBar) itemView.findViewById(R.id.ratingBar);
             mView = itemView;
         }
 
@@ -245,6 +254,59 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         this.menu = menu;
 
         inflater.inflate(R.menu.agenda_fragment_menu, menu);
+        menu.setGroupVisible(R.id.sortAgenda, true);
+
+        MenuItem sortItem = menu.findItem(R.id.sortSpinner);
+        Spinner sortSpinner = (Spinner) MenuItemCompat.getActionView(sortItem);
+        final String[] sortBy = new String[]{"Created","Name", "Rating"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_dropdown_item_1line, sortBy);
+        sortSpinner.setAdapter(adapter);
+        sortSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (sortBy[position] == "Name"){
+                    query = rDatabase.orderByChild("lowTitle");
+                    ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
+                    ringProgressDialog.show();;
+                    //initialize FirebaseRecyclerAdapter
+                    firebaseRecyclerAdapter.notifyDataSetChanged();
+                    linearLayoutManager.setReverseLayout(false);
+                    mAgendaList.setLayoutManager(linearLayoutManager);
+                    mAgendaList.setAdapter(firebaseRecyclerAdapter);
+                    displayRecyclerView(query);
+                }
+                else if (sortBy[position] == "Rating"){
+                    query = rDatabase.orderByChild("rating");
+                    ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
+                    ringProgressDialog.show();
+                    //initialize FirebaseRecyclerAdapter
+                    firebaseRecyclerAdapter.notifyDataSetChanged();
+                    linearLayoutManager.setReverseLayout(true);
+                    mAgendaList.setLayoutManager(linearLayoutManager);
+                    mAgendaList.setAdapter(firebaseRecyclerAdapter);
+
+                    displayRecyclerView(query);
+                }
+                else{
+                    query = rDatabase;
+                    ringProgressDialog = ProgressDialog.show(getActivity(), "Please Wait", "Loading Contacts", true);
+                    ringProgressDialog.show();;
+                    //initialize FirebaseRecyclerAdapter
+                    firebaseRecyclerAdapter.notifyDataSetChanged();
+                    linearLayoutManager.setReverseLayout(false);
+                    mAgendaList.setLayoutManager(linearLayoutManager);
+                    mAgendaList.setAdapter(firebaseRecyclerAdapter);
+                    displayRecyclerView(query);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+
         menu.setGroupVisible(R.id.search_group, true);
         MenuItem item = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) item.getActionView();
@@ -412,6 +474,7 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
 
                 viewHolder.agenda_title.setText(model.getTitle());
                 viewHolder.agenda_date.setText(model.getDate());
+                viewHolder.ratingBar.setRating(model.getRating());
 
                 TypedValue outValue = new TypedValue();
                 getContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);

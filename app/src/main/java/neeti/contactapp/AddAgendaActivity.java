@@ -139,13 +139,15 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                     String id = nameSnapshot.getKey();
                     hashMapContact.put(contactName, id);
                     names.add(contactName);
-                    if(contactName==selectedContact){
-                        multiSelectionSpinner.setSelection(names.indexOf(selectedContact));
-                    }
+
 
                 }
 
                 multiSelectionSpinner.setItems(names);
+
+                if(selectedContact!=null){
+                    multiSelectionSpinner.setSelection(names.indexOf(selectedContact));
+                }
 
             }
 
@@ -347,7 +349,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         EditText datePick = (EditText) findViewById(R.id.datePicker);
         String myFormat = "dd/MM/yy"; //In which you need put here
         SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.UK);
-
         datePick.setText(sdf.format(myCalendar.getTime()));
     }
 

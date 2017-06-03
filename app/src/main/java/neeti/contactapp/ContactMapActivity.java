@@ -1,5 +1,6 @@
 package neeti.contactapp;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
@@ -143,11 +144,23 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
                 return false;
             }
         });
+
+        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                String id = hashMapContact.get(marker);
+                Intent intent = new Intent(ContactMapActivity.this, ContactInfoActivity.class);
+                intent.putExtra("key", id);
+                startActivity(intent);
+            }
+        });
     }
 
     public void onMapSearch(View view) throws JSONException {
         EditText locationSearch = (EditText) findViewById(R.id.editText);
+        ProgressDialog ringProgressDialog = ProgressDialog.show(this, "Please Wait", "Loading Contacts", true);
 
+        ringProgressDialog.show();
         String location = locationSearch.getText().toString();
         List<Address> addressList = null;
 
@@ -183,6 +196,7 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
             }
 
         }
+        ringProgressDialog.dismiss();
     }
 
 

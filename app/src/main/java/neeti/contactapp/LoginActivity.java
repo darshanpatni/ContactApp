@@ -118,7 +118,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, SignUpActivity.class));
-                finish();
+
             }
         });
 
@@ -127,7 +127,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
-                finish();
+
             }
         });
 
@@ -219,8 +219,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 // Google Sign In failed, update UI appropriately
                 // ...
                 Toast.makeText(getApplication(), "Google Sign In failed!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(LoginActivity.this, LoginActivity.class));
-                finish();
+                //startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                //finish();
 
             }
         }
@@ -315,19 +315,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         }
         if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
+            Toast.makeText(getApplication(), "Email is required", Toast.LENGTH_SHORT).show();
+            /*mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
-            cancel = true;
+            cancel = true;*/
         } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
+            Toast.makeText(getApplication(), "Email is invalid", Toast.LENGTH_SHORT).show();
+            /*mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
-            cancel = true;
+            cancel = true;*/
         }
 
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
-            focusView.requestFocus();
+            //focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
@@ -452,7 +454,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if(!task.isSuccessful()){
-                        Toast.makeText(LoginActivity.this, "Sign in error", Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "Incorrect information!", Toast.LENGTH_LONG).show();
                         startActivity(new Intent(LoginActivity.this, LoginActivity.class));
                         finish();
                     }
@@ -465,7 +467,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                                 if(firebaseAuth.getCurrentUser()!=null){
 
                                     startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                                    finish();
 
                                 }
                             }

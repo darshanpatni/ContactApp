@@ -37,4 +37,14 @@
             />
     </group>
 
+    <group
+        android:id="@+id/searchSpinner">
+        <item android:id="@+id/paraSpinner"
+            android:icon="@drawable/ic_action_sort"
+            android:title="Search"
+            android:visible="false"
+            ContactApp:showAsAction="always"
+            ContactApp:actionViewClass="android.widget.Spinner" />
+    </group>
+
 </menu>

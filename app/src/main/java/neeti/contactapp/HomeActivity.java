@@ -44,9 +44,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -67,6 +70,7 @@ public class HomeActivity extends AppCompatActivity
     //Firebase Variables
     private GoogleApiClient mGoogleApiClient;
     private DatabaseReference rDatabase;
+    private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -81,6 +85,9 @@ public class HomeActivity extends AppCompatActivity
     private static long back_pressed_time;
     private static long PERIOD = 2000;
     boolean doubleBackToExitPressedOnce = false;
+
+    String name;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -109,7 +116,16 @@ public class HomeActivity extends AppCompatActivity
         View headView =  navigationView.getHeaderView(0);
         TextView uName = (TextView)headView.findViewById(R.id.userName);
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
+        ImageView editBtn = (ImageView)headView.findViewById(R.id.edit);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
+
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(HomeActivity.this, EditUserInfo.class));
+
+            }
+        });
 
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
@@ -126,7 +142,9 @@ public class HomeActivity extends AppCompatActivity
 
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
+
         user = FirebaseAuth.getInstance().getCurrentUser();
+
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -145,10 +163,32 @@ public class HomeActivity extends AppCompatActivity
 
         if (user != null) {
             // Name, email address, and profile photo Url
+            mAuth.getCurrentUser().reload().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    user = mAuth.getCurrentUser();
+                }
+            });
             rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
             rDatabase.keepSynced(true);
             Query query = rDatabase.orderByChild("name");
-            String name = user.getDisplayName();
+            mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
+                    .child(user.getUid()).child(user.getDisplayName());
+            name = null;
+            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    name = dataSnapshot.child("displayName").getValue(String.class);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            if(name==null) {
+                name = user.getDisplayName();
+            }
             String email = user.getEmail();
             Uri photoUrl = user.getPhotoUrl();
             System.out.println(name);

@@ -143,6 +143,16 @@ public class AgendaMapActivity extends AppCompatActivity implements OnMapReadyCa
                 return false;
             }
         });
+
+        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                String id = hashMapContact.get(marker);
+                Intent intent = new Intent(AgendaMapActivity.this, AgendaInfoActivity.class);
+                intent.putExtra("key", id);
+                startActivity(intent);
+            }
+        });
     }
 
     public void onMapSearch(View view) throws JSONException {

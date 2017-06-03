@@ -7,12 +7,14 @@ package neeti.contactapp;
 public class AgendaList {
     private String title;
     private String date;
+    private float rating;
 
     public AgendaList(){}
 
-    public AgendaList(String title, String date){
+    public AgendaList(String title, String date, float rating){
         this.title = title;
         this.date = date;
+        this.rating = rating;
     }
 
     public String getDate() {
@@ -32,4 +34,11 @@ public class AgendaList {
     }
 
 
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
+    }
 }

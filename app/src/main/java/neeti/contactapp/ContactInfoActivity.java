@@ -373,6 +373,7 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
 
 
                 startActivity(targetIntent);
+                finish();
             }
         });
     }
@@ -391,8 +392,6 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
 
         final List<String> contacts = new ArrayList<String>();
         final List<String> agendas = new ArrayList<String >();
-
-
 
         contactQuery = contactDatabase.child(currentContact).child("referenceList").orderByChild("refName");
 
