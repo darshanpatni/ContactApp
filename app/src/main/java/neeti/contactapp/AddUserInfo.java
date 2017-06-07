@@ -225,7 +225,6 @@ public class AddUserInfo extends AppCompatActivity {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                   // System.out.println(photoUri.toString());
                     Toast.makeText(AddUserInfo.this, "Upload Successful",
                             Toast.LENGTH_LONG).show();
 

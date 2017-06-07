@@ -178,21 +178,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     @Override
     public void onBackPressed() {
-        if (doubleBackToExitPressedOnce) {
-            super.onBackPressed();
-            return;
-        }
+        moveTaskToBack(true);
 
-        this.doubleBackToExitPressedOnce = true;
-        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
-
-        new Handler().postDelayed(new Runnable() {
-
-            @Override
-            public void run() {
-                doubleBackToExitPressedOnce=false;
-            }
-        }, 2000);
 
     }
 
@@ -251,17 +238,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     }
                 });
     }
-
-/*
-    public void register(){
-
-        //startActivity(new Intent(LoginActivity.this, Register.class));
-        Intent i = new Intent(getApplicationContext(),Register.class);
-        startActivity(i);
-
-    }
-*/
-
 
     @Override
     public void onStart() {

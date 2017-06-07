@@ -53,7 +53,6 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
     private DatabaseReference rDatabase;
     FirebaseUser user;
     List<String> names;
-    boolean doubleBackToExitPressedOnce = false;
     Calendar myCalendar;
     DatePickerDialog.OnDateSetListener date;
 
@@ -82,15 +81,12 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
     String currentAgenda;
     String contactKey;
     ArrayList<String> contactList;
-    String selectedContact;
 
     PlaceAutocompleteFragment autocompleteFragment;
     RatingBar ratingBar;
 
     float rating;
 
-    private double lat;
-    private double lng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,13 +170,7 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
                 }
 
                 multiSelectionSpinner.setItems(names);
-                /*int[] selectedIndex = new int[contactList.size()];
-                for (int i = 0; i < contactList.size(); i++){
-                    selectedIndex[i] = names.indexOf(contactList.get(i));
-                }*/
-
-                    //multiSelectionSpinner.setSelection(names.indexOf(contactList.get(0)));
-                    multiSelectionSpinner.setSelection(contactList);
+                multiSelectionSpinner.setSelection(contactList);
             }
 
             @Override
@@ -405,11 +395,6 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
                         }
                     }
                 }
-
-                //newAgenda.child("contacts").setValue(hashMapContact1.);
-                // newAgenda.child("contacts").setValue(contactNames);
-
-                //startActivity(intent);
                 Intent intentAct = new Intent(this,AgendaInfoActivity.class);
                 intentAct.putExtra("key", currentAgenda); //for example
                 String intentAc = "edit";

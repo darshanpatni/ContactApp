@@ -1,16 +1,12 @@
 package layout;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ActionMode;
@@ -37,7 +33,6 @@ import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -45,30 +40,19 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.futuremind.recyclerviewfastscroll.FastScroller;
 import com.futuremind.recyclerviewfastscroll.SectionTitleProvider;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 
@@ -76,17 +60,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import neeti.contactapp.CircleTransform;
 import neeti.contactapp.ContactInfoActivity;
 import neeti.contactapp.ContactList;
 import neeti.contactapp.HomeActivity;
-import neeti.contactapp.NotificationViewActivity;
 import neeti.contactapp.R;
 
 
@@ -141,30 +122,17 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     //Recycler Contact list variables
     private RecyclerView mContactList;
-    FragmentManager mFragmentManager;
-    FragmentTransaction mFragmentTransaction;
     //Firebase Variables
-    private GoogleApiClient mGoogleApiClient;
     private DatabaseReference rDatabase;
-    private DatabaseReference dDatabase;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     String searchQuery = "";
     FirebaseUser user;
     FirebaseRecyclerAdapter<ContactList, ContactListViewHolder> firebaseRecyclerAdapter;
     Query query = null;
 
-    String conKey;
-
-    TextView phone;
-    //Request Contact Constant
-    private static final int REQUEST_READ_CONTACTS = 0;
 
     public boolean ac = false;
-    private Long contactId;
-    private Uri downloadUrl = null;
-    GoogleSignInOptions gso;
 
     View mView;
     View deleteView;
@@ -179,11 +147,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     Double selectLatitude;
     Double selectLongitude;
 
-    String refKey;
-
-    private ActionMode acMode;
-
-    String agendaKey;
     String key;
 
     Menu menu = null;
@@ -249,10 +212,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         setHasOptionsMenu(true);
         //initialize Recycler view
         mContactList = (RecyclerView) rootView.findViewById(R.id.contact_list);
-        //mContactList.setHasFixedSize(true);
         mContactList.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        //sectionTitleIndicator = (SectionTitleIndicator) rootView.findViewById(R.id.fast_scroller_section_title_indicator);
         query = null;
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
@@ -269,16 +230,8 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
             displayRecyclerView(query);
 
             if(mContactList.getLayoutManager()!=null){
-                //VerticalRecyclerViewFastScroller fastScroller = (VerticalRecyclerViewFastScroller) rootView.findViewById(R.id.fast_scroller);
-
-
-
-                //fastScroller.setRecyclerView(mContactList);
-                //  fastScroller.setSectionIndicator(sectionTitleIndicator);
-                //mContactList.setOnScrollListener(fastScroller.getOnScrollListener());
                 setRecyclerViewLayoutManager(mContactList);
             }
-
         }
         mAuth = FirebaseAuth.getInstance();
 
@@ -292,16 +245,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         }
     }
 
-    /*@Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }*/
+
 
     @Override
     public void onDetach() {
@@ -313,8 +257,18 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
     public boolean onQueryTextSubmit(String input) {
         searchQuery = input.toLowerCase();
 
-        query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery+"\uf8ff");
-        firebaseRecyclerAdapter.notifyDataSetChanged();
+        if (search == "Name") {
+            searchQuery = input.toLowerCase();
+            query = rDatabase.orderByChild("lowName").startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+        }
+        else if (search == "City") {
+            searchQuery = input.toLowerCase();
+            query = rDatabase.orderByChild("lowCity").startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+        }
+        else if (search == "Phone") {
+            searchQuery = input.toLowerCase();
+            query = rDatabase.orderByChild("phone").startAt(searchQuery).endAt(searchQuery + "\uf8ff");
+        }firebaseRecyclerAdapter.notifyDataSetChanged();
         mContactList.setAdapter(firebaseRecyclerAdapter);
         displayRecyclerView(query);
         return false;
@@ -384,26 +338,9 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
         }
 
-        void makeCheckBoxVisible(Boolean value){
-            checkBox.setVisibility(View.VISIBLE);
-        }
-
-
-        private ContactListViewHolder.ClickListener mClickListener;
-
         @Override
         public String getSectionTitle(int position) {
             return contact_Name.getText().toString().substring(0, 1);
-        }
-
-        //Interface to send callbacks...
-        public interface ClickListener{
-            public void onItemClick(View view, int position);
-            public void onItemLongClick(View view, int position);
-        }
-
-        public void setOnClickListener(ContactListViewHolder.ClickListener clickListener){
-            mClickListener = clickListener;
         }
     }
 
@@ -413,8 +350,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         super.onCreateOptionsMenu(menu,inflater);
 
         this.menu = menu;
-
-
         inflater.inflate(R.menu.fragment_search, menu);
         menu.setGroupVisible(R.id.sortAgenda, false);
         menu.setGroupVisible(R.id.search_group, true);
@@ -439,8 +374,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         });
         MenuItem item = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) item.getActionView();
-        //MenuItemCompat.setShowAsAction(item, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
-        //MenuItemCompat.setActionView(item, searchView);
         searchView.setOnQueryTextListener(this);
 
         searchView.setQueryHint("Search");
@@ -523,56 +456,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                         for(int i = 0; i < selectedPos.size(); i++){
                             String position = selectedPos.get(i);
                             key = selectedContact.get(Integer.parseInt(position));
-
-
-
-
-                            /*Query referQuery = rDatabase.child(key);
-
-                            referQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    refKey = dataSnapshot.child("referenceKey").getValue(String.class);
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-
-                            Query deleteRef = rDatabase.child(refKey).child("referenceList").orderByChild("key").equalTo(key);
-
-                            deleteRef.addChildEventListener(new ChildEventListener() {
-                                @Override
-                                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                                    conKey = dataSnapshot.getKey();
-
-                                }
-
-                                @Override
-                                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-                                }
-
-                                @Override
-                                public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-                                }
-
-                                @Override
-                                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-
-                            rDatabase.getRef().child(refKey).child("referenceList").child(conKey).removeValue();*/
-
                             rDatabase.getRef().child(key).removeValue();
                         }
                         menu.setGroupVisible(R.id.main_menu_group, false);
@@ -659,10 +542,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                 }
                 final LinearLayout linearLayout = (LinearLayout) mView.findViewById(R.id.selectedList);
 
-                //List<TextView> textView = new ArrayList<TextView>();
-
-
-
                 if(selectedCon.size()>0){
                     for(int i = 0; i < selectedCon.size(); i++){
                         if(textview[i]!=null) {
@@ -692,9 +571,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                 autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
                     @Override
                     public void onPlaceSelected(Place place) {
-                        // TODO: Get info about the selected place.
-                        //   Toast.makeText(this, , Toast.LENGTH_LONG).show();
-                        //  Log.i(TAG, "Place: " + place.getName());
                         selectedPlace = place.getName().toString();
                         selectedPlaceAdd = place.getAddress().toString();
 
@@ -741,9 +617,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                         });
 
                         queue.add(stringRequest);
-                        //GetLocationDownloadTask getLocation = new GetLocationDownloadTask();
-                        //getLocation.execute(link);
-                    }
+                        }
 
                     @Override
                     public void onError(Status status) {
@@ -863,7 +737,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                         if(ac){
                             if(selectedPos.contains(String.valueOf(position))){
-                                //viewHolder.relativeLayout.setBackgroundColor(getResources().getColor(R.color.colorRed));
                                 selectedPos.remove(String.valueOf(position));
                                 selectedContact.remove(position);
                                 selectedCon.remove(model.getName());
@@ -872,8 +745,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                                 viewHolder.relativeLayout.setBackgroundResource(outValue.resourceId);
 
                                 ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
-                                //getActivity().setTitle(selectedPos.size()+" items selected.");
-
 
                                 if(selectedPos.size()==0){
                                     menu.setGroupVisible(R.id.main_menu_group, false);
@@ -894,8 +765,7 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
                                 ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
 
-                                //getActivity().setTitle(selectedPos.size()+" items selected.");37474F
-                            }
+                               }
                         }
 
                         else{
@@ -912,7 +782,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                     @Override
                     public boolean onLongClick(View v) {
                         ac = true;
-                        //viewHolder.makeCheckBoxVisible(true);
                         selectedContact.put(position, firebaseRecyclerAdapter.getRef(position).getKey());
                         selectedPos.add(String.valueOf(position));
                         selectedCon.add(model.getName());
@@ -922,7 +791,6 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
                         menu.setGroupVisible(R.id.search_group,false);
                         ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
                         ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#FFC300")));
-                        //getActivity().setTitle(selectedPos.size()+" items selected.");
                         return true;
                     }
 

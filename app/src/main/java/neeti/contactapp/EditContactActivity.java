@@ -57,40 +57,24 @@ public class EditContactActivity extends AppCompatActivity {
 
 
     FirebaseUser user;
-    String conKey;
     String currentContact;
     private StorageReference mStorageRef;
 
     private static final int GALLERY_INTENT = 2;
 
-    int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
-
-    String refContactName;
-
     String contactName;
     String contactPhone;
     String contactEmail;
     String contactCompany;
-    String contactDomain;
-    String contactReferal;
     String contactPhoto;
     String contactAddress;
-    String contactReferenceKey;
 
     List<String> names;
 
 
     Double lat, lng;
-    LatLng latLng;
-
-    Marker marker;
-
-    GoogleMap mMap;
-    HashMap markerMap = new HashMap();
-    HashMap markerMap1 = new HashMap();
 
     String Uid;
-    MultiSelectionSpinner multiSelectionSpinner;
     Spinner contactSpinner;
     HashMap <String, String>  ref = new HashMap<>();
 
@@ -111,16 +95,11 @@ public class EditContactActivity extends AppCompatActivity {
     double selectLatitude;
     double selectLongitude;
 
-    private double MyLat;
-    private double MyLong;
 
     Uri uri = null;//To store image Uri
-    String uriUpload;
 
     private DatabaseReference contactDatabase;
 
-
-    private HashMap<Marker, String> hashMapContact = new HashMap<Marker, String>();
 
 
     @Override
@@ -206,70 +185,6 @@ public class EditContactActivity extends AppCompatActivity {
             }
         });
 
-
-        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-
-        /*autocompleteFragment.setText(contactAddress);
-
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                //   Toast.makeText(this, , Toast.LENGTH_LONG).show();
-                //  Log.i(TAG, "Place: " + place.getName());
-                selectedPlace = place.getName().toString();
-                selectedPlaceAdd = place.getAddress().toString();
-
-
-                LatLng selectedPlaceLatLng = place.getLatLng();
-
-                selectLatitude = selectedPlaceLatLng.latitude;
-                selectLongitude = selectedPlaceLatLng.longitude;
-
-
-
-                String link = "http://maps.googleapis.com/maps/api/geocode/json?latlng="+selectLatitude+","+selectLongitude+"&sensor=true";
-                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-
-                StringRequest stringRequest = new StringRequest(com.android.volley.Request.Method.GET, link,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                try {
-                                    JSONArray jObj = new JSONObject(response).getJSONArray("results").getJSONObject(0).getJSONArray("address_components");
-
-                                    for (int i = 0; i < jObj.length(); i++) {
-                                        String componentName = new JSONObject(jObj.getString(i)).getJSONArray("types").getString(0);
-                                        if (componentName.equals("locality") || componentName.equals("administrative_area_level_2")) {
-                                            city = new JSONObject(jObj.getString(i)).getString("long_name");
-                                        }
-                                    }
-
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        int x = 1;
-                    }
-                });
-
-                queue.add(stringRequest);
-                //GetLocationDownloadTask getLocation = new GetLocationDownloadTask();
-                //getLocation.execute(link);
-            }
-
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                //  Log.i(TAG, "An error occurred: " + status);
-            }
-        });
-
         selectImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -277,24 +192,11 @@ public class EditContactActivity extends AppCompatActivity {
                 intent.setType("image/*");
                 startActivityForResult(intent, GALLERY_INTENT);
             }
-        });*/
+        });
 
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        /*if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                //Log.i(TAG, "Place: " + place.getName());
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
-                //  Log.i(TAG, status.getStatusMessage());
-
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }*/
 
         if(requestCode == GALLERY_INTENT && resultCode == RESULT_OK){
 
@@ -307,8 +209,6 @@ public class EditContactActivity extends AppCompatActivity {
 
                     .into(contactPhotoImg);
         }
-//.resize(60,60)
-// .centerCrop()
 
     }
 
@@ -359,9 +259,6 @@ public class EditContactActivity extends AppCompatActivity {
                 if (contactSpinner.getSelectedItem()!="NONE"){
                     contactDatabase.child("reference").setValue(contactSpinner.getSelectedItem().toString());
                     contactDatabase.child("referenceKey").setValue(ref.get(contactSpinner.getSelectedItem().toString()));
-                    //DatabaseReference refCon = rDatabase.child(ref.get(contactSpinner.getSelectedItem().toString())).child("referenceList").push();
-                    //refCon.child("refName").setValue(contactName.getText().toString());
-                    // refCon.child("key").setValue(newContact.getKey());
                 }
                 if (contactEmailEdit.getText()!=null && contactEmailEdit.getText().toString()!=contactEmail){
                     contactDatabase.child("email").setValue(contactEmailEdit.getText().toString());
@@ -374,16 +271,11 @@ public class EditContactActivity extends AppCompatActivity {
 
                 Uid = user.getUid();
 
-                //String newPath = decodeFile(uriPath);
-
-                // uri = Uri.parse(newPath);
-                //uri  = Uri.parse(uriUpload);
                 if(uri!=null){StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhoneEdit.getText().toString()+"/contactPhoto");
                     filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                            // System.out.println(photoUri.toString());
                             @SuppressWarnings("VisibleForTests")
                             String downloadUrl = taskSnapshot.getDownloadUrl().toString();
                             contactDatabase.child("photoUrl").setValue(downloadUrl);
@@ -399,7 +291,6 @@ public class EditContactActivity extends AppCompatActivity {
                         }
                     });}
 
-                //startActivity(intent);
                 Intent intentAct = new Intent(this,ContactInfoActivity.class);
                 intentAct.putExtra("key", currentContact); //for example
                 String intentAc = "edit";

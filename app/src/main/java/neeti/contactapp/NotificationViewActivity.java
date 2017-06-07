@@ -80,34 +80,19 @@ public class NotificationViewActivity extends AppCompatActivity {
             checkBox = (CheckBox) itemView.findViewById(R.id.checkBox);
             relativeLayout = (RelativeLayout) itemView.findViewById(R.id.relativeLayout);
             mView = itemView;
-
-
         }
-
-        void makeCheckBoxVisible(Boolean value) {
-            checkBox.setVisibility(View.VISIBLE);
-        }
-
-
-        private ContactListViewHolder.ClickListener mClickListener;
 
         @Override
         public String getSectionTitle(int position) {
             return contact_Name.getText().toString().substring(0, 1);
         }
 
-        //Interface to send callbacks...
-        public interface ClickListener {
-            public void onItemClick(View view, int position);
-
-            public void onItemLongClick(View view, int position);
-        }
-
-        public void setOnClickListener(ContactListViewHolder.ClickListener clickListener) {
-            mClickListener = clickListener;
-        }
     }
 
+    /**
+     *
+     * @param currentCity
+     */
     void displayRecyclerView(String currentCity) {
 
 

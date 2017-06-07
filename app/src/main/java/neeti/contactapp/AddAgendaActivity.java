@@ -58,7 +58,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     private DatabaseReference rDatabase;
     FirebaseUser user;
     List<String> names;
-    boolean doubleBackToExitPressedOnce = false;
     Calendar myCalendar;
     DatePickerDialog.OnDateSetListener date;
 
@@ -79,8 +78,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
     List contactNames;
 
     String selectedContact;
-    private double MyLat;
-    private double MyLong;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,9 +163,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-             //   Toast.makeText(this, , Toast.LENGTH_LONG).show();
-              //  Log.i(TAG, "Place: " + place.getName());
                 selectedPlace = place.getName().toString();
                 selectedPlaceAdd = place.getAddress().toString();
 
@@ -218,22 +212,7 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
             }
         });
 
-     /*   try {
-            Intent intent =
-                    new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY)
-                            .build(this);
-            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-        } catch (GooglePlayServicesRepairableException e) {
-            // TODO: Handle the error.
-        } catch (GooglePlayServicesNotAvailableException e) {
-            // TODO: Handle the error.
-        }
-*/
-
-
-
-
-    }
+         }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -319,10 +298,6 @@ public class AddAgendaActivity extends AppCompatActivity implements MultiSelecti
                     }
 
                 }
-
-                //newAgenda.child("contacts").setValue(hashMapContact1.);
-               // newAgenda.child("contacts").setValue(contactNames);
-
                 Intent intent = new Intent(this,HomeActivity.class);
                 intent.putExtra("fragmentValue", 1); //for example
                 startActivity(intent);

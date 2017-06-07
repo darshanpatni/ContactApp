@@ -43,13 +43,10 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
 
     ArrayList<String> contactList;
 
-    HashMap<String, String> agendaMap = new HashMap<String, String>();
     HashMap<String, String> contactMap = new HashMap<String, String>();
-    private DatabaseReference contactDatabase, agendaDatabase, getAgendaDatabase;
+    private DatabaseReference contactDatabase, agendaDatabase;
     FirebaseUser user;
     Query query = null;
-    Query agendaQuery = null;
-    Query contactQuery = null;
 
     TextView agenda_title;
     TextView agenda_description;
@@ -245,8 +242,6 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
                     .orderByChild("contactID").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                //contactName = dataSnapshot.child("contactName").getValue(String.class);
-                //contactKey = dataSnapshot.child("contactID").getValue(String.class);
                 final String entryKey = dataSnapshot.getKey();
 
                 if (dataSnapshot.child("contactID").getValue(String.class) != null) {

@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
@@ -13,12 +15,17 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -38,8 +45,14 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -64,9 +77,10 @@ import static android.Manifest.permission.READ_CONTACTS;
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-
+    //Fragment(Contact/Agenda Tab) Variables
     FragmentManager mFragmentManager;
     FragmentTransaction mFragmentTransaction;
+
     //Firebase Variables
     private GoogleApiClient mGoogleApiClient;
     private DatabaseReference rDatabase;
@@ -78,20 +92,39 @@ public class HomeActivity extends AppCompatActivity
 
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
+    static final Integer LOCATION = 0x1;
+    static final Integer CALL = 0x2;
+    static final Integer WRITE_EXST = 0x3;
+    static final Integer READ_EXST = 0x4;
+    static final Integer CAMERA = 0x5;
+    static final Integer GPS_SETTINGS = 0x7;
+    public static final int REQUEST_LOCATION = 99;
 
     private Long contactId;
-    private Uri downloadUrl = null;
     GoogleSignInOptions gso;
-    private static long back_pressed_time;
-    private static long PERIOD = 2000;
-    boolean doubleBackToExitPressedOnce = false;
 
     String name;
+    GoogleApiClient client;
+    LocationRequest mLocationRequest;
+    PendingResult<LocationSettingsResult> result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Check or Request permissions (For android Versions >= 6.0)
+        if (Build.VERSION.SDK_INT >= 23) {
+            mayRequestContacts();
+            client = new GoogleApiClient.Builder(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            askForPermission(Manifest.permission.CALL_PHONE,CALL);
+            askForPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_EXST);
+            askForPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,WRITE_EXST);
+            askForPermission(Manifest.permission.CAMERA,CAMERA);
+            askForPermission(Manifest.permission.ACCESS_FINE_LOCATION,LOCATION);
+        }
 
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -105,13 +138,7 @@ public class HomeActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            //do your check here
-            mayRequestContacts();
-        }
-
-
-       //initialize UI elements
+        //initialize UI elements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         View headView =  navigationView.getHeaderView(0);
         TextView uName = (TextView)headView.findViewById(R.id.userName);
@@ -296,7 +323,6 @@ public class HomeActivity extends AppCompatActivity
 
         });
 
-
         //initialize navigation drawer
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
@@ -306,10 +332,6 @@ public class HomeActivity extends AppCompatActivity
 
 
         navigationView.setNavigationItemSelectedListener(this); //listen if any item selected
-
-
-
-
     }
 
     @Override
@@ -318,21 +340,7 @@ public class HomeActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            if (doubleBackToExitPressedOnce) {
-                super.onBackPressed();
-                return;
-            }
-
-            this.doubleBackToExitPressedOnce = true;
-            Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
-
-            new Handler().postDelayed(new Runnable() {
-
-                @Override
-                public void run() {
-                    doubleBackToExitPressedOnce=false;
-                }
-            }, 2000);
+            moveTaskToBack(true);
         }
 
     }
@@ -351,14 +359,6 @@ public class HomeActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-
-        //noinspection SimplifiableIfStatement
-        /*if (id == R.id.action_settings) {
-            return true;
-        }*/
-
-
 
         return super.onOptionsItemSelected(item);
     }
@@ -391,12 +391,6 @@ public class HomeActivity extends AppCompatActivity
                 public void run() {
 
                     try {
-
-
-                        //user = FirebaseAuth.getInstance().getCurrentUser(); //Get the currently logged in user information
-                        //Uid = user.getUid();    //Get User ID
-                        //UName = user.getDisplayName();
-
                         //Initialize cursor to import contacts
                         ContentResolver cr = getContentResolver();
                         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
@@ -469,8 +463,7 @@ public class HomeActivity extends AppCompatActivity
                                             new String[]{contactId.toString()}, null);
                                         int pCount=1;
                                         while (pCur.moveToNext()) {
-                                        /*String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                                ContactsContract.CommonDataKinds.Phone.NUMBER));*/
+
                                         //Import Contact Phone No.
                                             int phoneType 		= pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
                                             //String isStarred 		= pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.STARRED));
@@ -491,7 +484,6 @@ public class HomeActivity extends AppCompatActivity
                                                         @Override
                                                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                                                            // System.out.println(photoUri.toString()); //debug point
                                                             @SuppressWarnings("VisibleForTests")
                                                            String downloadUrl =  taskSnapshot.getDownloadUrl().toString();
                                                /* downloadUrl = taskSnapshot.getDownloadUrl();*/
@@ -523,13 +515,6 @@ public class HomeActivity extends AppCompatActivity
                                                     break;
                                             }
 
-
-                                            /*if(pCount>1){
-                                                rDatabase.child(contactId.toString()).child("phone_"+(pCount)).setValue(phoneNo);
-                                            }else{
-                                        rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
-                                            }
-                                            pCount = pCount+1;*/
                                         }
                                     pCur.close();
 
@@ -551,9 +536,6 @@ public class HomeActivity extends AppCompatActivity
                 }
 
             }).start();
-
-
-
 
         } else if (id == R.id.nav_logout) {
 
@@ -594,12 +576,6 @@ public class HomeActivity extends AppCompatActivity
                 }
             });
 
-            /*Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(@NonNull Status status) {
-                    mAuth.signOut();
-                }
-            });*/
             mAuth.signOut();    //Log out user method
 
 
@@ -631,12 +607,31 @@ public class HomeActivity extends AppCompatActivity
 
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
+
         return false;
+    }
+
+    private void askForPermission(String permission, Integer requestCode) {
+        if (ContextCompat.checkSelfPermission(HomeActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(HomeActivity.this, permission)) {
+
+                //This is called if user has denied the permission before
+                //In this case I am just asking the permission again
+                ActivityCompat.requestPermissions(HomeActivity.this, new String[]{permission}, requestCode);
+
+            } else {
+
+                ActivityCompat.requestPermissions(HomeActivity.this, new String[]{permission}, requestCode);
+            }
+        }
     }
 
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
+        client.connect();
     }
 
     @Override
@@ -644,8 +639,42 @@ public class HomeActivity extends AppCompatActivity
         super.onStop();
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
+            client.disconnect();
         }
     }
 
+
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // location-related task you need to do.
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission. ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                        //Request location updates:
+                       // locationManager.requestLocationUpdates(provider, 400, 1, this);
+                    }
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+
+                }
+                return;
+            }
+
+        }
+    }
 
 }

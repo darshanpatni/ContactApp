@@ -199,11 +199,6 @@ public class AgendaMapActivity extends AppCompatActivity implements OnMapReadyCa
         finish();
     }
 
-
-
-
-
-
     public class GetLocationDownloadTask extends AsyncTask<String, Void, String> {
 
         @Override

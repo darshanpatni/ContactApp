@@ -266,10 +266,6 @@ public class LocationService extends Service {
         t.start();
         return t;
     }
-
-
-
-
     public class MyLocationListener implements LocationListener{
 
         private DatabaseReference rDatabase;
@@ -309,36 +305,7 @@ public class LocationService extends Service {
                     rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
 
                 }
-
-
                     Query query = rDatabase.orderByChild("city").equalTo(newCity);
-
-                    /*query.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            float c = 0;
-                            c = +1;
-                                // ..
-                            }
-
-                           if(dataSnapshot.getValue()!=null){
-                               count = 1;
-                           }
-                           else {
-                               count = 0;
-                           }
-                           // count = c;
-                            //c = dataSnapshot.getChildrenCount();
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                                count = 0;
-                        }
-                    });*/
-
-
                     count = 0;
                 query.addValueEventListener(new ValueEventListener() {
                     @Override
@@ -370,21 +337,9 @@ public class LocationService extends Service {
                             count = 0;
                     }
                 });
-
-
-
                     if (count>0) {
                         count=0;
-
-
                     }
-
-                    //Toast.makeText(context, "Latitude" + loc.getLatitude() + "\nLongitude"+loc.getLongitude(),Toast.LENGTH_SHORT).show();
-                    /*intent.putExtra("Latitude", loc.getLatitude());
-                    intent.putExtra("Longitude", loc.getLongitude());
-                    intent.putExtra("Provider", loc.getProvider());
-                    sendBroadcast(intent);*/
-
             }
         }
 

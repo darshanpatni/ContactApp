@@ -47,7 +47,6 @@ import java.util.List;
 
 import neeti.contactapp.AgendaInfoActivity;
 import neeti.contactapp.AgendaList;
-import neeti.contactapp.ContactList;
 import neeti.contactapp.HomeActivity;
 import neeti.contactapp.R;
 
@@ -310,8 +309,6 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
         menu.setGroupVisible(R.id.search_group, true);
         MenuItem item = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) item.getActionView();
-        //MenuItemCompat.setShowAsAction(item, MenuItemCompat.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW | MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
-        //MenuItemCompat.setActionView(item, searchView);
         searchView.setOnQueryTextListener(this);
 
         searchView.setQueryHint("Search");
@@ -504,8 +501,6 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
                                 viewHolder.relativeLayout.setBackgroundResource(outValue.resourceId);
 
                                 ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
-                                //getActivity().setTitle(selectedPos.size()+" items selected.");
-
 
                                 if(selectedPos.size()==0){
                                     menu.setGroupVisible(R.id.main_menu_group, false);
@@ -526,7 +521,6 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
 
                                 ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
 
-                                //getActivity().setTitle(selectedPos.size()+" items selected.");37474F
                             }
 
                         }
@@ -552,7 +546,6 @@ public class AgendaFragment extends Fragment implements SearchView.OnQueryTextLi
                         menu.setGroupVisible(R.id.search_group,false);
                         ((HomeActivity) getActivity()).setActionBarTitle(selectedPos.size()+" items selected.");
                         ((HomeActivity) getActivity()).setBackgroundColor(new ColorDrawable(Color.parseColor("#FFC300")));
-                        //getActivity().setTitle(selectedPos.size()+" items selected.");
                         return true;
                     }
 

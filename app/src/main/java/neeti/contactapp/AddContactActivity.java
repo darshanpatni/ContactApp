@@ -72,19 +72,16 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     List<String> names;
 
     String Uid;
-    MultiSelectionSpinner multiSelectionSpinner;
     Spinner contactSpinner;
     HashMap <String, String>  ref = new HashMap<>();
     EditText contactName;
     EditText contactPhone;
     EditText contactEmail;
     EditText contactCompany;
-    ImageButton call;
     //permission constants
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
     private static final int GALLERY_INTENT = 2;
 
-    Button selectImage;
     ImageView contactPhoto;
 
     String selectedPlace = null;
@@ -95,12 +92,9 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     double selectLatitude;
     double selectLongitude;
 
-    private double MyLat;
-    private double MyLong;
 
     FloatingActionButton fab;
     Uri uri = null;//To store image Uri
-    String uriUpload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +116,6 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
                 .child(user.getUid()).child(user.getDisplayName()).child("contacts");
 
-        // multiSelectionSpinner = (MultiSelectionSpinner) findViewById(R.id.mySpinner);
 
         query.addValueEventListener(new ValueEventListener() {
             @Override
@@ -195,8 +188,6 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 });
 
                 queue.add(stringRequest);
-                //GetLocationDownloadTask getLocation = new GetLocationDownloadTask();
-                //getLocation.execute(link);
             }
 
             @Override
@@ -251,9 +242,6 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
                     .into(contactPhoto);
         }
-//.resize(60,60)
-// .centerCrop()
-
     }
 
 
@@ -303,9 +291,6 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
                 if (contactSpinner.getSelectedItem()!="NONE"){
                     newContact.child("reference").setValue(contactSpinner.getSelectedItem().toString());
                     newContact.child("referenceKey").setValue(ref.get(contactSpinner.getSelectedItem().toString()));
-                    //DatabaseReference refCon = rDatabase.child(ref.get(contactSpinner.getSelectedItem().toString())).child("referenceList").push();
-                    //refCon.child("refName").setValue(contactName.getText().toString());
-                   // refCon.child("key").setValue(newContact.getKey());
                 }
                 if (contactEmail.getText()!=null){
                     newContact.child("email").setValue(contactEmail.getText().toString());
@@ -319,16 +304,11 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
                 Uid = user.getUid();
 
-                //String newPath = decodeFile(uriPath);
-
-               // uri = Uri.parse(newPath);
-                //uri  = Uri.parse(uriUpload);
                 if(uri!=null){StorageReference filepath = mStorageRef.child("users/"+Uid+"/contacts/"+contactPhone.getText().toString()+"/contactPhoto");
                     filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                            // System.out.println(photoUri.toString());
                             @SuppressWarnings("VisibleForTests")
                             String downloadUrl = taskSnapshot.getDownloadUrl().toString();
                             newContact.child("photoUrl").setValue(downloadUrl);
@@ -400,60 +380,5 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         }
         return false;
     }
-
-    /*private String decodeFile(String path) {
-        String strMyImagePath = null;
-        Bitmap scaledBitmap = null;
-
-        try {
-            // Part 1: Decode image
-            Bitmap unscaledBitmap = ScalingUtilities.decodeFile(path, 800, 800, ScalingUtilities.ScalingLogic.CROP);
-
-            if (!(unscaledBitmap.getWidth() <= 800 && unscaledBitmap.getHeight() <= 800)) {
-                // Part 2: Scale image
-                scaledBitmap = ScalingUtilities.createScaledBitmap(unscaledBitmap, 800, 800, ScalingUtilities.ScalingLogic.CROP);
-            } else {
-                unscaledBitmap.recycle();
-                return path;
-            }
-
-            // Store to tmp file
-
-            String extr = Environment.getExternalStorageDirectory().toString();
-            File mFolder = new File(extr + "/myTmpDir");
-            if (!mFolder.exists()) {
-                mFolder.mkdir();
-            }
-
-            String s = "tmp.png";
-
-            File f = new File(mFolder.getAbsolutePath(), s);
-
-            strMyImagePath = f.getAbsolutePath();
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(f);
-                scaledBitmap.compress(Bitmap.CompressFormat.PNG, 70, fos);
-                fos.flush();
-                fos.close();
-            } catch (FileNotFoundException e) {
-
-                e.printStackTrace();
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            }
-
-            scaledBitmap.recycle();
-        } catch (Throwable e) {
-        }
-
-        if (strMyImagePath == null) {
-            return path;
-        }
-        return strMyImagePath;
-
-    }*/
-
 
 }
