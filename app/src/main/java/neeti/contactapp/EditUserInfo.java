@@ -67,6 +67,17 @@ public class EditUserInfo extends AppCompatActivity {
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
     private static final int GALLERY_INTENT = 2;
 
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Initialize Firebase variables (User, Database and Authentication State).
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -291,6 +302,15 @@ public class EditUserInfo extends AppCompatActivity {
         });
     }
 
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Load selected image from gallery into imageview.
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -307,8 +327,6 @@ public class EditUserInfo extends AppCompatActivity {
 
         }
     }
-
-
 
     //Request permission to access External Storage (Required for API 23 or greater)
     private boolean mayRequestExternalStorage() {
@@ -332,6 +350,8 @@ public class EditUserInfo extends AppCompatActivity {
         return false;
     }
 
+    /*Move data to new node (This node depends on Display name).
+     */
     public  void  moveFirebaseRecords(){
         fromPath.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

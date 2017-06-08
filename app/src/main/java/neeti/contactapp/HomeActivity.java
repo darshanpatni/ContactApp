@@ -108,6 +108,7 @@ public class HomeActivity extends AppCompatActivity
     LocationRequest mLocationRequest;
     PendingResult<LocationSettingsResult> result;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -345,6 +346,15 @@ public class HomeActivity extends AppCompatActivity
 
     }
 
+    /**
+     *
+     * @param menu
+     * @return
+     */
+
+    /*
+    Inflate the menu, this adds items to the action bar if it is present.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -353,6 +363,14 @@ public class HomeActivity extends AppCompatActivity
         return true;
     }
 
+    /**
+     *
+     * @param item
+     * @return
+     */
+    /*
+    •	Handle action bar item clicks here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -363,15 +381,36 @@ public class HomeActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     *
+     * @param title
+     */
+    /*
+    •	Set custom action bar title.
+     */
     public void setActionBarTitle(String title){
         getSupportActionBar().setTitle(title);
     }
 
+    /**
+     *
+     * @param d
+     */
+    /*
+    •	Set custom action bar color.
+     */
     public void setBackgroundColor(Drawable d){
         getSupportActionBar().setBackgroundDrawable(d);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
+
+    /**
+     *
+     */
+    /*
+    •	Handle navigation view item clicks (Import Contacts, Logout).
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
@@ -589,6 +628,14 @@ public class HomeActivity extends AppCompatActivity
     }
 
     //Method to request contacts (Required for API 23 and greater)
+
+    /**
+     *
+     * @return
+     */
+    /*
+    •	Request permission to access contacts.
+     */
     private boolean mayRequestContacts() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
@@ -611,6 +658,14 @@ public class HomeActivity extends AppCompatActivity
         return false;
     }
 
+    /**
+     *
+     * @param permission
+     * @param requestCode
+     */
+    /*
+    •	Request permission as per the parameters.
+     */
     private void askForPermission(String permission, Integer requestCode) {
         if (ContextCompat.checkSelfPermission(HomeActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
 
@@ -628,12 +683,20 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+
+    /*
+    •	Add authentication state listener to listen to current user login status.
+     */
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
         client.connect();
     }
 
+
+    /*
+    •	Remove authentication state listener.
+     */
     @Override
     public void onStop() {
         super.onStop();
@@ -644,8 +707,15 @@ public class HomeActivity extends AppCompatActivity
     }
 
 
-
-
+    /**
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
+    /*
+    •	Handle the results of a permission request.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {

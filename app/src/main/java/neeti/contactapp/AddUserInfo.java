@@ -52,6 +52,15 @@ public class AddUserInfo extends AppCompatActivity {
 
     Uri uri = null;//To store image Uri
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -205,6 +214,15 @@ public class AddUserInfo extends AppCompatActivity {
 
     }
 
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Load selected image from gallery to imageview.
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
 
         super.onActivityResult(requestCode, resultCode, data);

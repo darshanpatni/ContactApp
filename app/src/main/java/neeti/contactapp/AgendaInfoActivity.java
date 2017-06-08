@@ -80,6 +80,18 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
     TextView ratingText;
 
     int i = 0;
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+    •	Get selected agenda key from intent.
+    •	Execute query to retrieve data.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -226,6 +238,9 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
 
     }
 
+    /*
+     •	Populate data in expandable list view.
+     */
     private void prepareListData() {
         listDataHeader = new ArrayList<String>();
         listDataChild = new HashMap<String, List<String>>();
@@ -296,6 +311,13 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
         listDataChild.put(listDataHeader.get(0), contacts);
     }
 
+    /**
+     *
+     * @param googleMap
+     */
+    /*
+    •	Called when the map is ready to be used.
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -346,6 +368,14 @@ public class AgendaInfoActivity extends AppCompatActivity implements OnMapReadyC
 
     }
 
+    /**
+     *
+     * @param listView
+     * @param group
+     */
+    /*
+    •	Adjust height of expandable list view to fir in scroll view
+     */
     private void setListViewHeight(ExpandableListView listView,
                                    int group) {
         ExpandableListAdapter listAdapter = (ExpandableListAdapter) listView.getExpandableListAdapter();

@@ -151,6 +151,15 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
 
     Menu menu = null;
     private ActionMode.Callback modeCallBack = new ActionMode.Callback() {
+        /**
+         *
+         * @param mode
+         * @param menu
+         * @return
+         */
+        /*
+        •	Inflate custom menu in action bar.
+         */
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
             mode.getMenuInflater().inflate(R.menu.select_contact, menu);
@@ -204,6 +213,20 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         }
     }
 
+    /**
+     *
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
+    /*
+    •	Inflate fragment layout.
+    •	Initialize UI elements.
+    •	Initialize Firebase elements (User, database).
+    •	Call function to fill recycler view.
+
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -253,6 +276,14 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         mListener = null;
     }
 
+    /**
+     *
+     * @param input
+     * @return
+     */
+    /*
+    	Handle recycler view based on search query.
+     */
     @Override
     public boolean onQueryTextSubmit(String input) {
         searchQuery = input.toLowerCase();
@@ -274,6 +305,14 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         return false;
     }
 
+    /**
+     *
+     * @param newText
+     * @return
+     */
+    /*
+    	Dynamically handle recycler view based on input
+     */
     @Override
     public boolean onQueryTextChange(String newText) {
         if(TextUtils.isEmpty(newText)){
@@ -344,6 +383,14 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         }
     }
 
+    /**
+     *
+     * @param menu
+     * @param inflater
+     */
+    /*
+    •	Handle interactions with the options in action bar menu (delete, assign location, search).
+     */
     @Override
     public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater) {
 
@@ -699,6 +746,14 @@ public class ContactFragment extends Fragment implements SearchView.OnQueryTextL
         });
     }
 
+
+    /**
+     *
+     * @param query
+     */
+    /*
+    	Populate recycler view and handle on click interactions.
+     */
     public void displayRecyclerView(Query query){
 
         firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<ContactList, ContactListViewHolder>(

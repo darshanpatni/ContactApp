@@ -78,6 +78,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     public LoginActivity() {
     }
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Initialize Firebase variables (User, Database and Authentication State).
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -175,7 +185,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
     }
-
+    /*
+    •	Handles back press actions.
+     */
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
@@ -183,12 +195,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     }
 
-
+    /*
+    Initiates Google sign in.
+     */
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...).
+    •	Handle Google sign in failure and success.
+
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -213,6 +238,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
+    /**
+     *
+     * @param acct
+     */
+    /*
+    •	Initiate and handle Firebase login with Google.
+     */
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
 
@@ -258,6 +290,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
+     */
+    /*
+    •	Initiate user login with Email and Password.
      */
     private void attemptLogin() {
         if (mAuthTask != null) {

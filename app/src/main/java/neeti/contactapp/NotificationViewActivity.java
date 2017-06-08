@@ -36,7 +36,15 @@ public class NotificationViewActivity extends AppCompatActivity {
     String currentCity;
 
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Initialize Firebase variables (User, Database and Authentication State).
 
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +100,9 @@ public class NotificationViewActivity extends AppCompatActivity {
     /**
      *
      * @param currentCity
+     */
+    /*
+    	Populate RecyclerView with contacts.
      */
     void displayRecyclerView(String currentCity) {
 

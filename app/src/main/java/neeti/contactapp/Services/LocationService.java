@@ -65,11 +65,9 @@ public class LocationService extends Service {
     String newCity = null;
 
     float count = 0;
-    long nCount = 0;
     Context context;
 
     Intent intent;
-    int counter = 0;
 
     @Override
     public void onCreate() {

@@ -23,6 +23,17 @@ public class ResetPasswordActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ProgressBar progressBar;
 
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+    •	Handle password reset request.
+
+     */
     @Override
 
     protected void onCreate(Bundle savedInstanceState) {

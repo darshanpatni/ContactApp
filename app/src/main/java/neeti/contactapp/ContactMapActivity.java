@@ -55,11 +55,20 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
     HashMap markerMap = new HashMap();
     HashMap markerMap1 = new HashMap();
     private HashMap<Marker, String> hashMapContact = new HashMap<Marker, String>();
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Initialize Firebase variables (User, Database and Authentication State).
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_map);
-
 
         // Get a reference to our posts
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -91,8 +100,13 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
     }
 
 
-
-
+    /**
+     *
+     * @param googleMap
+     */
+    /*
+    	Called when the map is ready to be used.
+     */
     @Override
     public void onMapReady(final GoogleMap googleMap) {
 
@@ -156,6 +170,14 @@ public class ContactMapActivity extends AppCompatActivity implements OnMapReadyC
         });
     }
 
+    /**
+     *
+     * @param view
+     * @throws JSONException
+     */
+    /*
+    •	Search markers on the map.
+     */
     public void onMapSearch(View view) throws JSONException {
         EditText locationSearch = (EditText) findViewById(R.id.editText);
         ProgressDialog ringProgressDialog = ProgressDialog.show(this, "Please Wait", "Loading Contacts", true);

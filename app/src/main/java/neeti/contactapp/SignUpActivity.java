@@ -24,6 +24,15 @@ public class SignUpActivity extends AppCompatActivity {
     //Declare Firebase elements
     private FirebaseAuth mAuth;
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,10 +60,16 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
     }
+    /*
+    •	Check validity of input at email field.
+     */
     private boolean isEmailValid(String email) {
         return email.contains("@");
     }
 
+    /*
+    Handle firebase user registration success and failure.
+     */
     private boolean isPasswordValid(String password) {
         return password.length() > 4;
     }

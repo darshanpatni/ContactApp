@@ -101,7 +101,17 @@ public class EditContactActivity extends AppCompatActivity {
     private DatabaseReference contactDatabase;
 
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+    •	Get selected contact key and other relevant details from intent.
+    •	Fill editable UI elements with relevant information.
 
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -195,6 +205,16 @@ public class EditContactActivity extends AppCompatActivity {
         });
 
     }
+
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Load selected image from gallery into imageview.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -212,6 +232,14 @@ public class EditContactActivity extends AppCompatActivity {
 
     }
 
+    /**
+     *
+     * @param item
+     * @return
+     */
+    /*
+    •	Handle action bar item clicks here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -303,6 +331,14 @@ public class EditContactActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     *
+     * @param menu
+     * @return
+     */
+    /*
+    •	Inflate the menu; this adds items to the action bar if it is present.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

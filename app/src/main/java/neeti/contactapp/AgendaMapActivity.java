@@ -60,6 +60,16 @@ public class AgendaMapActivity extends AppCompatActivity implements OnMapReadyCa
 
     private HashMap<Marker, String> hashMapContact = new HashMap<Marker, String>();
 
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Initialize Firebase variables (User, Database and Authentication State).
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +104,13 @@ public class AgendaMapActivity extends AppCompatActivity implements OnMapReadyCa
         });
     }
 
+    /**
+     *
+     * @param googleMap
+     */
+    /*
+    •	Called when the map is ready to be used.
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -155,6 +172,14 @@ public class AgendaMapActivity extends AppCompatActivity implements OnMapReadyCa
         });
     }
 
+    /**
+     *
+     * @param view
+     * @throws JSONException
+     */
+    /*
+    	Search markers on the map.
+     */
     public void onMapSearch(View view) throws JSONException {
         EditText locationSearch = (EditText) findViewById(R.id.editText);
         String location = locationSearch.getText().toString();

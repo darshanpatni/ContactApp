@@ -96,6 +96,15 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
     FloatingActionButton fab;
     Uri uri = null;//To store image Uri
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -214,7 +223,15 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
     }
 
-
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Stores result from PlaceAutocompleteFragment.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
@@ -244,7 +261,14 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
         }
     }
 
-
+    /**
+     *
+     * @param item
+     * @return
+     */
+    /*
+    •	Handle on click actions on menu option(s).
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -351,7 +375,14 @@ public class AddContactActivity extends AppCompatActivity implements MultiSelect
 
     }
 
-
+    /**
+     *
+     * @param menu
+     * @return
+     */
+    /*
+    •	Inflate custom menu in action bar.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

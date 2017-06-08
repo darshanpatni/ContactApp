@@ -87,7 +87,17 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
 
     float rating;
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+    •	Get selected agenda key and other relevant details from intent.
+    •	Fill editable UI elements with relevant information.
 
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -245,6 +255,16 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
         autocompleteFragment.setText(selectedPlace);
     }
 
+
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Stores result from PlaceAutocompleteFragment.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
@@ -262,6 +282,14 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
         }
     }
 
+    /**
+     *
+     * @param menu
+     * @return
+     */
+    /*
+    •	Inflate the menu; this adds items to the action bar if it is present.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -269,6 +297,14 @@ public class EditAgendaActivity extends AppCompatActivity implements MultiSelect
         return true;
     }
 
+    /**
+     *
+     * @param item
+     * @return
+     */
+    /*
+    •	Handle action bar item clicks here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will

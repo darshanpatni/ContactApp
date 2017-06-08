@@ -120,6 +120,17 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
 
     static final Integer CALL = 0x2;
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+    •	Get selected contact key from intent.
+    •	Execute query to retrieve data.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -383,7 +394,9 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
         });
     }
 
-
+    /*
+    •	Populate data in expandable list view.
+     */
     private void prepareListData() {
         listDataHeader = new ArrayList<String>();
         listDataHeader2 = new ArrayList<String>();
@@ -491,6 +504,13 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
         listDataChild2.put(listDataHeader2.get(0), contacts);
     }
 
+    /**
+     *
+     * @param googleMap
+     */
+    /*
+    •	Called when the map is ready to be used.
+     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -551,6 +571,14 @@ public class ContactInfoActivity extends AppCompatActivity implements OnMapReady
         }
     }
 
+    /**
+     *
+     * @param listView
+     * @param group
+     */
+    /*
+    Adjust height of expandable list view to fir in scroll view.
+     */
     private void setListViewHeight(ExpandableListView listView,
                                    int group) {
         ExpandableListAdapter listAdapter = (ExpandableListAdapter) listView.getExpandableListAdapter();
