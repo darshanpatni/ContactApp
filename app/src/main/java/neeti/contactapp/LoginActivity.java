@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -72,9 +73,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int RC_SIGN_IN = 9001;
     private static final String TAG = "LoginActivity";
 
+    boolean doubleBackToExitPressedOnce = false;
+
     public LoginActivity() {
     }
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Initialize Firebase variables (User, Database and Authentication State).
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +102,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if(firebaseAuth.getCurrentUser()!=null){
 
                     startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                    finish();
 
                 }
             }
@@ -114,6 +128,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, SignUpActivity.class));
+
             }
         });
 
@@ -122,6 +137,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, ResetPasswordActivity.class));
+
             }
         });
 
@@ -169,20 +185,35 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
     }
-
+    /*
+    •	Handles back press actions.
+     */
     @Override
     public void onBackPressed() {
-        startActivity(new Intent(LoginActivity.this, LoginActivity.class));
-        finish();
+        moveTaskToBack(true);
+
 
     }
 
-
+    /*
+    Initiates Google sign in.
+     */
     private void signIn() {
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...).
+    •	Handle Google sign in failure and success.
+
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -200,12 +231,20 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 // Google Sign In failed, update UI appropriately
                 // ...
                 Toast.makeText(getApplication(), "Google Sign In failed!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                //startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                //finish();
 
             }
         }
     }
 
+    /**
+     *
+     * @param acct
+     */
+    /*
+    •	Initiate and handle Firebase login with Google.
+     */
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
 
@@ -224,23 +263,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                            finish();
                         }
                         showProgress(true);
                         // ...
                     }
                 });
     }
-
-/*
-    public void register(){
-
-        //startActivity(new Intent(LoginActivity.this, Register.class));
-        Intent i = new Intent(getApplicationContext(),Register.class);
-        startActivity(i);
-
-    }
-*/
-
 
     @Override
     public void onStart() {
@@ -261,6 +290,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
+     */
+    /*
+    •	Initiate user login with Email and Password.
      */
     private void attemptLogin() {
         if (mAuthTask != null) {
@@ -294,19 +326,21 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         }
         if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
+            Toast.makeText(getApplication(), "Email is required", Toast.LENGTH_SHORT).show();
+            /*mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
-            cancel = true;
+            cancel = true;*/
         } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
+            Toast.makeText(getApplication(), "Email is invalid", Toast.LENGTH_SHORT).show();
+            /*mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
-            cancel = true;
+            cancel = true;*/
         }
 
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
-            focusView.requestFocus();
+            //focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
@@ -431,8 +465,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if(!task.isSuccessful()){
-                        Toast.makeText(LoginActivity.this, "Sign in error", Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "Incorrect information!", Toast.LENGTH_LONG).show();
                         startActivity(new Intent(LoginActivity.this, LoginActivity.class));
+                        finish();
                     }
                     else{
 
@@ -495,5 +530,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
         }
     }
+
 }
 

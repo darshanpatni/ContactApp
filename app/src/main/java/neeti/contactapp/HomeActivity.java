@@ -4,23 +4,28 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -36,37 +41,50 @@ import android.widget.Toast;
 
 import android.provider.ContactsContract;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 import java.io.IOException;
 
+import layout.AgendaFragment;
+import neeti.contactapp.Services.LocationService;
+
 import static android.Manifest.permission.READ_CONTACTS;
 
 public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-
+    //Fragment(Contact/Agenda Tab) Variables
     FragmentManager mFragmentManager;
     FragmentTransaction mFragmentTransaction;
+
     //Firebase Variables
     private GoogleApiClient mGoogleApiClient;
     private DatabaseReference rDatabase;
+    private DatabaseReference mDatabase;
     private FirebaseAuth mAuth;
     private StorageReference mStorageRef;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -74,51 +92,88 @@ public class HomeActivity extends AppCompatActivity
 
     //Request Contact Constant
     private static final int REQUEST_READ_CONTACTS = 0;
+    static final Integer LOCATION = 0x1;
+    static final Integer CALL = 0x2;
+    static final Integer WRITE_EXST = 0x3;
+    static final Integer READ_EXST = 0x4;
+    static final Integer CAMERA = 0x5;
+    static final Integer GPS_SETTINGS = 0x7;
+    public static final int REQUEST_LOCATION = 99;
 
     private Long contactId;
-    private Uri downloadUrl = null;
     GoogleSignInOptions gso;
+
+    String name;
+    GoogleApiClient client;
+    LocationRequest mLocationRequest;
+    PendingResult<LocationSettingsResult> result;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Check or Request permissions (For android Versions >= 6.0)
+        if (Build.VERSION.SDK_INT >= 23) {
+            mayRequestContacts();
+            client = new GoogleApiClient.Builder(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            askForPermission(Manifest.permission.CALL_PHONE,CALL);
+            askForPermission(Manifest.permission.READ_EXTERNAL_STORAGE, READ_EXST);
+            askForPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,WRITE_EXST);
+            askForPermission(Manifest.permission.CAMERA,CAMERA);
+            askForPermission(Manifest.permission.ACCESS_FINE_LOCATION,LOCATION);
+        }
+
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
+        Intent intent = new Intent(HomeActivity.this, LocationService.class);
+        this.startService(intent);
 
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (Build.VERSION.SDK_INT >= 23) {
-            //do your check here
-            mayRequestContacts();
-        }
-
-
-       //initialize UI elements
+        //initialize UI elements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         View headView =  navigationView.getHeaderView(0);
         TextView uName = (TextView)headView.findViewById(R.id.userName);
         ImageView dPhoto = (ImageView)headView.findViewById(R.id.imageView);
+        ImageView editBtn = (ImageView)headView.findViewById(R.id.edit);
         TextView mEmail = (TextView)headView.findViewById(R.id.uEmail);
+
+        editBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(HomeActivity.this, EditUserInfo.class));
+
+            }
+        });
 
         mFragmentManager = getSupportFragmentManager();
         mFragmentTransaction = mFragmentManager.beginTransaction();
+        if(getIntent().getIntExtra("fragmentNumber",0)==1){
+            //set the desired fragment as current fragment to fragment pager
+            System.out.println("YES!");
+            mFragmentTransaction.replace(R.id.containerView,new AgendaFragment()).commit();
+
+        }
+        System.out.println("YES!");
         mFragmentTransaction.replace(R.id.containerView,new TabFragment()).commit();
 
 
 
         //initialize Firebase variables
         mStorageRef = FirebaseStorage.getInstance().getReference();
+
         user = FirebaseAuth.getInstance().getCurrentUser();
-        rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
-        rDatabase.keepSynced(true);
-        Query query = rDatabase.orderByChild("name");
+
+
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -133,9 +188,35 @@ public class HomeActivity extends AppCompatActivity
             }
         };
 
+
         if (user != null) {
             // Name, email address, and profile photo Url
-            String name = user.getDisplayName();
+            mAuth.getCurrentUser().reload().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    user = mAuth.getCurrentUser();
+                }
+            });
+            rDatabase = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid()).child(user.getDisplayName()).child("contacts");
+            rDatabase.keepSynced(true);
+            Query query = rDatabase.orderByChild("name");
+            mDatabase = FirebaseDatabase.getInstance().getReference().child("users")
+                    .child(user.getUid()).child(user.getDisplayName());
+            name = null;
+            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    name = dataSnapshot.child("displayName").getValue(String.class);
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            if(name==null) {
+                name = user.getDisplayName();
+            }
             String email = user.getEmail();
             Uri photoUrl = user.getPhotoUrl();
             System.out.println(name);
@@ -148,6 +229,14 @@ public class HomeActivity extends AppCompatActivity
 
                 Picasso.with(this)
                         .load(photoUrl)
+                        .transform(new CircleTransform())
+                        .into(dPhoto);
+            }
+
+            else{
+                Picasso.with(this)
+                        .load(R.drawable.ic_default_photo)
+                        .transform(new CircleTransform())
                         .into(dPhoto);
             }
 
@@ -179,7 +268,49 @@ public class HomeActivity extends AppCompatActivity
                             startActivity(new Intent(HomeActivity.this, AddContactActivity.class));
                             finish();
                             return true;
+                        }
+                        if(item.getItemId()==R.id.agenda){
+                            startActivity(new Intent(HomeActivity.this, AddAgendaActivity.class));
+                            finish();
+                            return true;
+                        }
+                        Toast.makeText(HomeActivity.this,"You Clicked : " + item.getTitle(),Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
 
+                popup.show();//showing popup menu
+            }
+                /*Snackbar.make(view, "Replace with add contact or agenda", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();*/
+
+        });
+
+
+        //initialize floating action button
+        final FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.fab1);
+        fab1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Creating the instance of PopupMenu
+                PopupMenu popup = new PopupMenu(HomeActivity.this, fab1);
+                //Inflating the Popup using xml file
+                popup.getMenuInflater().inflate(R.menu.popup_menu1, popup.getMenu());
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+
+                        System.out.println(item.getTitle().toString());
+                        if(item.getItemId()==R.id.exploreContact){
+                            startActivity(new Intent(HomeActivity.this, ContactMapActivity.class));
+                            finish();
+                            return true;
+                        }
+                        if(item.getItemId()==R.id.exploreAgenda){
+                            startActivity(new Intent(HomeActivity.this, AgendaMapActivity.class));
+                            finish();
+                            return true;
                         }
                         Toast.makeText(HomeActivity.this,"You Clicked : " + item.getTitle(),Toast.LENGTH_SHORT).show();
                         return true;
@@ -202,10 +333,6 @@ public class HomeActivity extends AppCompatActivity
 
 
         navigationView.setNavigationItemSelectedListener(this); //listen if any item selected
-
-
-
-
     }
 
     @Override
@@ -214,10 +341,20 @@ public class HomeActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            moveTaskToBack(true);
         }
+
     }
 
+    /**
+     *
+     * @param menu
+     * @return
+     */
+
+    /*
+    Inflate the menu, this adds items to the action bar if it is present.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -226,6 +363,14 @@ public class HomeActivity extends AppCompatActivity
         return true;
     }
 
+    /**
+     *
+     * @param item
+     * @return
+     */
+    /*
+    •	Handle action bar item clicks here.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -233,18 +378,39 @@ public class HomeActivity extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-
-
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     *
+     * @param title
+     */
+    /*
+    •	Set custom action bar title.
+     */
+    public void setActionBarTitle(String title){
+        getSupportActionBar().setTitle(title);
+    }
+
+    /**
+     *
+     * @param d
+     */
+    /*
+    •	Set custom action bar color.
+     */
+    public void setBackgroundColor(Drawable d){
+        getSupportActionBar().setBackgroundDrawable(d);
+    }
+
     @SuppressWarnings("StatementWithEmptyBody")
+
+    /**
+     *
+     */
+    /*
+    •	Handle navigation view item clicks (Import Contacts, Logout).
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
@@ -264,12 +430,6 @@ public class HomeActivity extends AppCompatActivity
                 public void run() {
 
                     try {
-
-
-                        //user = FirebaseAuth.getInstance().getCurrentUser(); //Get the currently logged in user information
-                        //Uid = user.getUid();    //Get User ID
-                        //UName = user.getDisplayName();
-
                         //Initialize cursor to import contacts
                         ContentResolver cr = getContentResolver();
                         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI,
@@ -317,28 +477,7 @@ public class HomeActivity extends AppCompatActivity
                                     }
                                     else{
 
-                                        //Import Contact Photo
 
-                                        StorageReference filepath = mStorageRef.child("users/"+user.getUid()+"/"+contactId+"/contactPhoto").child(displayPhotoUri.getLastPathSegment());
-                                        filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-
-
-                                            @Override
-                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-
-                                                // System.out.println(photoUri.toString()); //debug point
-
-                                                downloadUrl = taskSnapshot.getDownloadUrl();
-                                                rDatabase.child(contactId.toString()).child("photoUrl").setValue(downloadUrl.toString());
-
-
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-
-                                            }
-                                        });
 
                                         //Import Contact Email ID if Any
                                         assert emailCursor != null;
@@ -350,18 +489,70 @@ public class HomeActivity extends AppCompatActivity
                                         }
                                         emailCursor.close();
 
+                                        //Import Contact Name
+
+                                        rDatabase.child(contactId.toString()).child("city").setValue(null);
+                                        rDatabase.child(contactId.toString()).child("name").setValue(cName);
+                                        rDatabase.child(contactId.toString()).child("lowName").setValue(cName.toLowerCase());
+
                                         Cursor pCur = cr.query(
                                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                                             null,
                                             ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = ?",
                                             new String[]{contactId.toString()}, null);
+                                        int pCount=1;
                                         while (pCur.moveToNext()) {
-                                        String phoneNo = pCur.getString(pCur.getColumnIndex(
-                                                ContactsContract.CommonDataKinds.Phone.NUMBER));
+
                                         //Import Contact Phone No.
-                                        rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
-                                        //Import Contact Name
-                                            rDatabase.child(contactId.toString()).child("name").setValue(cName);
+                                            int phoneType 		= pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
+                                            //String isStarred 		= pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.STARRED));
+                                            String phoneNo 	= pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                                            //you will get all phone numbers according to it's type as below switch case.
+
+
+                                            switch (phoneType)
+                                            {
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE:
+                                                    rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
+                                                    //Import Contact Photo
+
+                                                    StorageReference filepath = mStorageRef.child("users/"+user.getUid()+"/"+phoneNo+"/contactPhoto");
+                                                    filepath.putFile(displayPhotoUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+
+
+                                                        @Override
+                                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                                                            @SuppressWarnings("VisibleForTests")
+                                                           String downloadUrl =  taskSnapshot.getDownloadUrl().toString();
+                                               /* downloadUrl = taskSnapshot.getDownloadUrl();*/
+                                                rDatabase.child(contactId.toString()).child("photoUrl").setValue(downloadUrl);
+
+
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+
+                                                        }
+                                                    });
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_HOME:
+                                                    rDatabase.child(contactId.toString()).child("phoneHome").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_WORK:
+                                                    rDatabase.child(contactId.toString()).child("phoneWork").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_WORK_MOBILE:
+                                                    rDatabase.child(contactId.toString()).child("phoneWorkMobile").setValue(phoneNo);
+                                                    break;
+                                                case ContactsContract.CommonDataKinds.Phone.TYPE_OTHER:
+                                                    rDatabase.child(contactId.toString()).child("phoneOther").setValue(phoneNo);
+                                                    break;
+                                                default:
+                                                    rDatabase.child(contactId.toString()).child("phone").setValue(phoneNo);
+                                                    break;
+                                            }
 
                                         }
                                     pCur.close();
@@ -384,9 +575,6 @@ public class HomeActivity extends AppCompatActivity
                 }
 
             }).start();
-
-
-
 
         } else if (id == R.id.nav_logout) {
 
@@ -412,7 +600,7 @@ public class HomeActivity extends AppCompatActivity
                             @Override
                             public void onResult(@NonNull Status status) {
                                 if (status.isSuccess()) {
-                                    Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                                    Intent intent = new Intent(HomeActivity.this, HomeActivity.class);
                                     startActivity(intent);
                                     finish();
                                 }
@@ -427,12 +615,6 @@ public class HomeActivity extends AppCompatActivity
                 }
             });
 
-            /*Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallback<Status>() {
-                @Override
-                public void onResult(@NonNull Status status) {
-                    mAuth.signOut();
-                }
-            });*/
             mAuth.signOut();    //Log out user method
 
 
@@ -446,6 +628,14 @@ public class HomeActivity extends AppCompatActivity
     }
 
     //Method to request contacts (Required for API 23 and greater)
+
+    /**
+     *
+     * @return
+     */
+    /*
+    •	Request permission to access contacts.
+     */
     private boolean mayRequestContacts() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return true;
@@ -464,21 +654,97 @@ public class HomeActivity extends AppCompatActivity
 
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
+
         return false;
     }
 
+    /**
+     *
+     * @param permission
+     * @param requestCode
+     */
+    /*
+    •	Request permission as per the parameters.
+     */
+    private void askForPermission(String permission, Integer requestCode) {
+        if (ContextCompat.checkSelfPermission(HomeActivity.this, permission) != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(HomeActivity.this, permission)) {
+
+                //This is called if user has denied the permission before
+                //In this case I am just asking the permission again
+                ActivityCompat.requestPermissions(HomeActivity.this, new String[]{permission}, requestCode);
+
+            } else {
+
+                ActivityCompat.requestPermissions(HomeActivity.this, new String[]{permission}, requestCode);
+            }
+        }
+    }
+
+
+    /*
+    •	Add authentication state listener to listen to current user login status.
+     */
     public void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener); //Listen to current user Login status
+        client.connect();
     }
 
+
+    /*
+    •	Remove authentication state listener.
+     */
     @Override
     public void onStop() {
         super.onStop();
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
+            client.disconnect();
         }
     }
 
+
+    /**
+     *
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
+    /*
+    •	Handle the results of a permission request.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // location-related task you need to do.
+                    if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission. ACCESS_FINE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                        //Request location updates:
+                       // locationManager.requestLocationUpdates(provider, 400, 1, this);
+                    }
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+
+                }
+                return;
+            }
+
+        }
+    }
 
 }

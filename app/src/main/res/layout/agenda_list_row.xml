@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:focusable="true"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:clickable="true"
+    android:id="@+id/relativeLayout"
+    android:background="?android:attr/selectableItemBackground"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/agendaTitle"
+        android:textColor="@color/ContactName"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <RatingBar
+        android:id="@+id/ratingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:scaleX=".3"
+        android:scaleY=".3"
+        android:layout_gravity="center"
+        android:isIndicator="true"
+        android:numStars="5"
+        android:layout_marginRight="-80dp"
+        android:layout_alignParentRight="true"/>
+
+    <TextView
+        android:id="@+id/agendaDate"
+        android:layout_below="@id/agendaTitle"
+        android:textColor="@color/ContactPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+
+</RelativeLayout>

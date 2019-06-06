@@ -1,6 +1,7 @@
 package neeti.contactapp;
 
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,6 +23,17 @@ public class ResetPasswordActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ProgressBar progressBar;
 
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+    •	Handle password reset request.
+
+     */
     @Override
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,4 +91,5 @@ public class ResetPasswordActivity extends AppCompatActivity {
         });
 
     }
+
 }

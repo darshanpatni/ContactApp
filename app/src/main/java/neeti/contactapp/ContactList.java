@@ -9,12 +9,13 @@ public class ContactList {
 
     private String name;
     private String phone;
-
+    private String photoUrl;
     public ContactList(){}
 
-    public ContactList(String name, String phone) {
+    public ContactList(String name, String phone, String photoUrl) {
         this.name = name;
         this.phone = phone;
+        this.photoUrl = photoUrl;
     }
 
     public String getPhone() {
@@ -29,10 +30,24 @@ public class ContactList {
         return name;
     }
 
+    public String findName(String searchQuery){
+        if(searchQuery.equalsIgnoreCase(name)){
+            return name;
+        }
+        else
+            return null;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
 
 
+    public String getPhotoUrl() {
+        return photoUrl;
+    }
 
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
 }

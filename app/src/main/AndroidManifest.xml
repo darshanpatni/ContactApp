@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="neeti.contactapp">
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
@@ -7,6 +8,14 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:name=".ContactApp"
@@ -14,7 +23,8 @@
         android:icon="@drawable/icon"
         android:label="ContactApp"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:label">
         <activity
             android:name=".LoginActivity"
             android:label="Pin Contact">
@@ -24,6 +34,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".Services.LocationService"
+            android:process=":location_service" />
+
         <activity
             android:name=".HomeActivity"
             android:label="Home"
@@ -39,7 +54,32 @@
             android:label="Complete your profile" />
         <activity
             android:name=".AddContactActivity"
-            android:label="Add Contact"/>
+            android:label="Add Contact" />
+        <activity
+            android:name=".AddAgendaActivity"
+            android:label="Add Agenda" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyA6lWI6upw5jLDvH7excw4HAGJsQchL71Q" />
+
+        <activity
+            android:name=".ContactMapActivity"
+            android:label="Explore Contacts"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".AgendaMapActivity"
+            android:label="Explore Agenda"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ContactInfoActivity" />
+        <activity android:name=".NotificationViewActivity" />
+        <activity android:name=".AgendaInfoActivity" />
+        <activity android:name=".EditContactActivity" />
+        <activity android:name=".EditAgendaActivity" />
+        <activity android:name=".EditUserInfo" />
+        <activity
+            android:name=".LoginActivity2"
+            android:label="@string/title_activity_login2"></activity>
     </application>
 
 </manifest>

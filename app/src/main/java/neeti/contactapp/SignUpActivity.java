@@ -23,6 +23,16 @@ public class SignUpActivity extends AppCompatActivity {
 
     //Declare Firebase elements
     private FirebaseAuth mAuth;
+
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,13 +60,17 @@ public class SignUpActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
     }
+    /*
+    •	Check validity of input at email field.
+     */
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
         return email.contains("@");
     }
 
+    /*
+    Handle firebase user registration success and failure.
+     */
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
         return password.length() > 4;
     }
 
@@ -89,22 +103,12 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-       /* if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
-        }*/
-
-        //String email = mEmailView.getText().toString();
-
         progressBar.setVisibility(View.VISIBLE);
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(SignUpActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
 
-                       // Toast.makeText(SignUpActivity.this, "createUserWithEmail:onComplete:"+task.isSuccessful(), Toast.LENGTH_SHORT).show();
-                        //progressBar.setVisibility(View.GONE);
                         // If sign in fails, display a message to the user. If sign in succeeds
                         // the auth state listener will be notified and logic to handle the
                         // signed in user can be handled in the listener.

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ public class AddUserInfo extends AppCompatActivity {
     private ProgressBar progressBar;
     private StorageReference mStorageRef;
     FirebaseUser user;
+    boolean doubleBackToExitPressedOnce = false;
 
     //permission constants
     private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
@@ -48,8 +50,17 @@ public class AddUserInfo extends AppCompatActivity {
     Button selectImage;
     ImageView dPhoto;
 
-    Uri uri;//To store image Uri
+    Uri uri = null;//To store image Uri
 
+    /**
+     *
+     * @param savedInstanceState
+     */
+    /*
+    •	Initialize UI elements.
+    •	Set button interactions.
+
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,13 +153,16 @@ public class AddUserInfo extends AppCompatActivity {
     }
 
     //Save User Display Name and Display Photo
-    public void Save(){
+    public void Save() {
 
         String NewName = dName.getText().toString();
 
-        if(NewName!=null) {
+        if (NewName != null) {
 
             progressBar.setVisibility(View.VISIBLE);//Set progress bar visible
+
+            if (uri != null) {
+
             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                     .setDisplayName(NewName)
                     .setPhotoUri(Uri.parse(uri.toString()))
@@ -169,8 +183,29 @@ public class AddUserInfo extends AppCompatActivity {
                         }
 
                     });
-        }
+            }
+            else{
+                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                        .setDisplayName(NewName)
+                        .build();
+                user.updateProfile(profileUpdates)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
 
+                                    progressBar.setVisibility(View.GONE);
+                                    Toast.makeText(AddUserInfo.this, "Registration completed. Please Login!",
+                                            Toast.LENGTH_LONG).show();
+                                    mAuth.signOut();
+                                    startActivity(new Intent(AddUserInfo.this, LoginActivity.class));
+                                    finish();
+                                }
+                            }
+
+                        });
+            }
+        }
         else{
 
             Toast.makeText(AddUserInfo.this, "Please enter your name.",
@@ -179,6 +214,15 @@ public class AddUserInfo extends AppCompatActivity {
 
     }
 
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    /*
+    •	Load selected image from gallery to imageview.
+     */
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -192,13 +236,13 @@ public class AddUserInfo extends AppCompatActivity {
 
             Picasso.with(this)
                     .load(uri)
+                    .transform(new CircleTransform())
                     .into(dPhoto);
             StorageReference filepath = mStorageRef.child("users/"+Uid+"/profilePhoto");
             filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                   // System.out.println(photoUri.toString());
                     Toast.makeText(AddUserInfo.this, "Upload Successful",
                             Toast.LENGTH_LONG).show();
 
@@ -236,5 +280,22 @@ public class AddUserInfo extends AppCompatActivity {
         return false;
     }
 
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
 
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
+    }
 }
